@@ -1,0 +1,8 @@
+{
+  "name": "NeoBrutalist Personal OS",
+  "description": "A high-performance personal dashboard and task manager styled with a striking Neo-Brutalist aesthetic, featuring AI-powered productivity insights via Gemini.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
