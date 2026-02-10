@@ -30,6 +30,8 @@ export enum AppId {
   MY_RECENT_DOCS = 'my-recent-docs',
   MY_GAMES = 'my-games',
   MY_PROJECTS = 'my-projects',
+  MY_APPS = 'my-apps',
+  CALCULATOR = 'calculator',
 }
 
 export interface FileItem {

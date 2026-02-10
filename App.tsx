@@ -9,6 +9,8 @@ import BrainView from './components/BrainView';
 import BrowserApp from './components/apps/BrowserApp';
 import GamesApp from './components/apps/GamesApp';
 import FileExplorerApp from './components/apps/FileExplorerApp';
+import MyAppsApp from './components/apps/MyAppsApp';
+import CalculatorApp from './components/apps/CalculatorApp';
 import {
   AppId,
   AppConfig,
@@ -106,6 +108,20 @@ const APP_CONFIGS: Record<AppId, AppConfig> = {
     titleBarColor: '#f2cc8f',
     iconPath: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
     iconBg: '#f2cc8f',
+  },
+  [AppId.MY_APPS]: {
+    title: 'My Apps',
+    defaultSize: { width: 700, height: 500 },
+    titleBarColor: '#f2cc8f',
+    iconPath: 'M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM14 5a1 1 0 011-1h4a1 1 0 011 1v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z',
+    iconBg: '#f2cc8f',
+  },
+  [AppId.CALCULATOR]: {
+    title: 'Calculator',
+    defaultSize: { width: 400, height: 550 },
+    titleBarColor: '#e07a5f',
+    iconPath: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+    iconBg: '#e07a5f',
   },
 };
 
@@ -319,6 +335,10 @@ const App: React.FC = () => {
         return <BrowserApp />;
       case AppId.GAMES:
         return <GamesApp />;
+      case AppId.MY_APPS:
+        return <MyAppsApp onOpenApp={openApp} />;
+      case AppId.CALCULATOR:
+        return <CalculatorApp />;
       case AppId.MY_DOCUMENTS:
       case AppId.MY_PICTURES:
       case AppId.MY_MUSIC:

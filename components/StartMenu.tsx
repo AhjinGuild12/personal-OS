@@ -50,6 +50,12 @@ const PLACES_ITEMS: { appId: AppId; label: string; iconPath: string; iconBg: str
     iconBg: '#81b29a',
   },
   {
+    appId: AppId.MY_APPS,
+    label: 'My Apps',
+    iconPath: 'M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM14 5a1 1 0 011-1h4a1 1 0 011 1v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z',
+    iconBg: '#f2cc8f',
+  },
+  {
     appId: AppId.MY_GAMES,
     label: 'My Games',
     iconPath: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z',
