@@ -1,3 +1,4 @@
+// === Existing data types (used by Dashboard, TaskManager, BrainView) ===
 
 export interface Task {
   id: string;
@@ -14,15 +15,64 @@ export interface Project {
   team: string[];
 }
 
-export interface NavItem {
-  id: string;
-  label: string;
-  icon: string;
+// === OS Types ===
+
+export enum AppId {
+  PROJECTS = 'projects',
+  TASKS = 'tasks',
+  BRAIN = 'brain',
+  BROWSER = 'browser',
+  GAMES = 'games',
+  MY_DOCUMENTS = 'my-documents',
+  MY_PICTURES = 'my-pictures',
+  MY_MUSIC = 'my-music',
+  MY_COMPUTER = 'my-computer',
+  MY_RECENT_DOCS = 'my-recent-docs',
+  MY_GAMES = 'my-games',
+  MY_PROJECTS = 'my-projects',
 }
 
-export enum AppTab {
-  DASHBOARD = 'dashboard',
-  TASKS = 'tasks',
-  CALENDAR = 'calendar',
-  BRAIN = 'brain'
+export interface FileItem {
+  id: string;
+  name: string;
+  type: 'folder' | 'document' | 'image' | 'audio' | 'video' | 'app';
+  size?: string;
+  modifiedDate?: string;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface WindowState {
+  id: string;
+  appId: AppId;
+  title: string;
+  position: Position;
+  size: Size;
+  zIndex: number;
+  isMinimized: boolean;
+  isMaximized: boolean;
+  preMaximize?: { position: Position; size: Size };
+}
+
+export interface DesktopShortcut {
+  appId: AppId;
+  label: string;
+  iconPath: string;
+  iconBg: string;
+}
+
+export interface AppConfig {
+  title: string;
+  defaultSize: Size;
+  titleBarColor: string;
+  iconPath: string;
+  iconBg: string;
 }
