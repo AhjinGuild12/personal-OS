@@ -30,8 +30,15 @@ export enum AppId {
   MY_RECENT_DOCS = 'my-recent-docs',
   MY_GAMES = 'my-games',
   MY_PROJECTS = 'my-projects',
+  MY_VIDEOS = 'my-videos',
   MY_APPS = 'my-apps',
   CALCULATOR = 'calculator',
+  TODOS = 'todos',
+  CURRENCY_CONVERTER = 'currency-converter',
+  WORLD_CLOCK = 'world-clock',
+  WEATHER = 'weather',
+  CAMERA = 'camera',
+  TV_RETRO = 'tv-retro',
 }
 
 export interface FileItem {
@@ -40,6 +47,8 @@ export interface FileItem {
   type: 'folder' | 'document' | 'image' | 'audio' | 'video' | 'app';
   size?: string;
   modifiedDate?: string;
+  parentId?: string;
+  videoId?: string;
 }
 
 export interface Position {
@@ -62,6 +71,8 @@ export interface WindowState {
   isMinimized: boolean;
   isMaximized: boolean;
   preMaximize?: { position: Position; size: Size };
+  initialFolderId?: string;
+  videoId?: string;
 }
 
 export interface DesktopShortcut {

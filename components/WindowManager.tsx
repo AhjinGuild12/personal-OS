@@ -11,7 +11,7 @@ interface WindowManagerProps {
   onFocus: (id: string) => void;
   onUpdatePosition: (id: string, pos: Position) => void;
   onUpdateSize: (id: string, size: Size) => void;
-  renderApp: (appId: AppId) => React.ReactNode;
+  renderApp: (appId: AppId, windowState: WindowState) => React.ReactNode;
 }
 
 const WindowManager: React.FC<WindowManagerProps> = ({
@@ -42,7 +42,7 @@ const WindowManager: React.FC<WindowManagerProps> = ({
             onUpdatePosition={onUpdatePosition}
             onUpdateSize={onUpdateSize}
           >
-            {renderApp(win.appId)}
+            {renderApp(win.appId, win)}
           </Window>
         ))}
     </>

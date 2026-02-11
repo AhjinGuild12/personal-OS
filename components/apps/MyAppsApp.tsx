@@ -14,7 +14,41 @@ const MINI_APPS = [
     title: 'Calculator',
     description: 'Basic arithmetic calculator',
   },
-  // Future apps can be added here
+  {
+    id: AppId.TODOS,
+    icon: 'M5 13l4 4L19 7',
+    iconBg: '#e07a5f',
+    title: 'To-dos',
+    description: 'Simple task list',
+  },
+  {
+    id: AppId.CURRENCY_CONVERTER,
+    icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    iconBg: '#f2cc8f',
+    title: 'Currency Converter',
+    description: 'Multi-currency conversion',
+  },
+  {
+    id: AppId.WORLD_CLOCK,
+    icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+    iconBg: '#81b29a',
+    title: 'World Clock',
+    description: 'Multi-timezone display',
+  },
+  {
+    id: AppId.WEATHER,
+    icon: 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z',
+    iconBg: '#7eb8d0',
+    title: 'Weather',
+    description: 'City weather overview',
+  },
+  {
+    id: AppId.CAMERA,
+    icon: 'M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z',
+    iconBg: '#fdf6e3',
+    title: 'Life in Polaroid',
+    description: 'Camera & photos',
+  },
 ];
 
 const MyAppsApp: React.FC<MyAppsAppProps> = ({ onOpenApp }) => {

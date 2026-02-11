@@ -11,10 +11,16 @@ import GamesApp from './components/apps/GamesApp';
 import FileExplorerApp from './components/apps/FileExplorerApp';
 import MyAppsApp from './components/apps/MyAppsApp';
 import CalculatorApp from './components/apps/CalculatorApp';
+import TodosApp from './components/apps/TodosApp';
+import CurrencyConverterApp from './components/apps/CurrencyConverterApp';
+import WorldClockApp from './components/apps/WorldClockApp';
+import WeatherApp from './components/apps/WeatherApp';
+import CameraApp from './components/apps/CameraApp';
+import TVRetroApp from './components/apps/TVRetroApp';
+import { FOLDER_IDS, getChildren } from './data/fileSystem';
 import {
   AppId,
   AppConfig,
-  FileItem,
   WindowState,
   Position,
   Size,
@@ -88,6 +94,13 @@ const APP_CONFIGS: Record<AppId, AppConfig> = {
     iconPath: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
     iconBg: '#81b29a',
   },
+  [AppId.MY_VIDEOS]: {
+    title: 'My Videos',
+    defaultSize: { width: 650, height: 450 },
+    titleBarColor: '#e07a5f',
+    iconPath: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+    iconBg: '#e07a5f',
+  },
   [AppId.MY_RECENT_DOCS]: {
     title: 'My Recent Documents',
     defaultSize: { width: 650, height: 450 },
@@ -123,20 +136,59 @@ const APP_CONFIGS: Record<AppId, AppConfig> = {
     iconPath: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
     iconBg: '#e07a5f',
   },
+  [AppId.TODOS]: {
+    title: 'To-dos',
+    defaultSize: { width: 500, height: 550 },
+    titleBarColor: '#e07a5f',
+    iconPath: 'M5 13l4 4L19 7',
+    iconBg: '#e07a5f',
+  },
+  [AppId.CURRENCY_CONVERTER]: {
+    title: 'Currency Converter',
+    defaultSize: { width: 450, height: 500 },
+    titleBarColor: '#f2cc8f',
+    iconPath: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    iconBg: '#f2cc8f',
+  },
+  [AppId.WORLD_CLOCK]: {
+    title: 'World Clock',
+    defaultSize: { width: 600, height: 550 },
+    titleBarColor: '#81b29a',
+    iconPath: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+    iconBg: '#81b29a',
+  },
+  [AppId.WEATHER]: {
+    title: 'Weather',
+    defaultSize: { width: 500, height: 400 },
+    titleBarColor: '#7eb8d0',
+    iconPath: 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z',
+    iconBg: '#7eb8d0',
+  },
+  [AppId.CAMERA]: {
+    title: 'Life in Polaroid',
+    defaultSize: { width: 600, height: 500 },
+    titleBarColor: '#fdf6e3',
+    iconPath: 'M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z',
+    iconBg: '#fdf6e3',
+  },
+  [AppId.TV_RETRO]: {
+    title: 'Retro TV',
+    defaultSize: { width: 640, height: 520 },
+    titleBarColor: '#3d3024',
+    iconPath: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+    iconBg: '#3d3024',
+  },
 };
 
 // --- Desktop shortcuts (what appears on the desktop) ---
 const DESKTOP_SHORTCUTS: DesktopShortcut[] = [];
 
-// --- Mock file data for file explorer windows ---
-const MOCK_FILES: Record<string, FileItem[]> = {
-  [AppId.MY_DOCUMENTS]: [],
-  [AppId.MY_PICTURES]: [],
-  [AppId.MY_MUSIC]: [],
-  [AppId.MY_COMPUTER]: [],
-  [AppId.MY_RECENT_DOCS]: [],
-  [AppId.MY_GAMES]: [],
-  [AppId.MY_PROJECTS]: [],
+// Map shortcut AppIds to their folder IDs inside My Computer
+const FOLDER_APP_MAP: Partial<Record<AppId, string>> = {
+  [AppId.MY_DOCUMENTS]: FOLDER_IDS.MY_DOCUMENTS,
+  [AppId.MY_PICTURES]: FOLDER_IDS.MY_PICTURES,
+  [AppId.MY_MUSIC]: FOLDER_IDS.MY_MUSIC,
+  [AppId.MY_VIDEOS]: FOLDER_IDS.MY_VIDEOS,
 };
 
 // --- Cascade offset for new windows ---
@@ -185,33 +237,70 @@ const App: React.FC = () => {
 
   // --- Window management handlers ---
 
-  const openApp = useCallback((appId: AppId) => {
+  const openApp = useCallback((appId: AppId, initialFolderId?: string, videoId?: string) => {
     setIsStartMenuOpen(false);
+
+    // Redirect folder shortcuts to My Computer with target folder
+    const folderTarget = FOLDER_APP_MAP[appId];
+    const resolvedAppId = folderTarget ? AppId.MY_COMPUTER : appId;
+    const resolvedFolderId = folderTarget ?? initialFolderId;
+
+    // For TV_RETRO, always open a new window (don't reuse)
+    if (resolvedAppId === AppId.TV_RETRO) {
+      setWindows((prev) => {
+        const config = APP_CONFIGS[resolvedAppId];
+        const newWindow: WindowState = {
+          id: `${resolvedAppId}-${Date.now()}`,
+          appId: resolvedAppId,
+          title: config.title,
+          position: cascadePosition(),
+          size: config.defaultSize,
+          zIndex: nextZIndex,
+          isMinimized: false,
+          isMaximized: false,
+          ...(videoId ? { videoId } : {}),
+        };
+        return [...prev, newWindow];
+      });
+      setNextZIndex((z) => z + 1);
+      return;
+    }
+
     setWindows((prev) => {
-      const existing = prev.find((w) => w.appId === appId);
+      const existing = prev.find((w) => w.appId === resolvedAppId);
       if (existing) {
-        // Focus and un-minimize existing window
+        // Focus, un-minimize, and update target folder if applicable
         return prev.map((w) =>
           w.id === existing.id
-            ? { ...w, isMinimized: false, zIndex: nextZIndex }
+            ? {
+              ...w,
+              isMinimized: false,
+              zIndex: nextZIndex,
+              ...(resolvedFolderId ? { initialFolderId: resolvedFolderId } : {}),
+            }
             : w
         );
       }
-      const config = APP_CONFIGS[appId];
+      const config = APP_CONFIGS[resolvedAppId];
       const newWindow: WindowState = {
-        id: `${appId}-${Date.now()}`,
-        appId,
+        id: `${resolvedAppId}-${Date.now()}`,
+        appId: resolvedAppId,
         title: config.title,
         position: cascadePosition(),
         size: config.defaultSize,
         zIndex: nextZIndex,
         isMinimized: false,
         isMaximized: false,
+        ...(resolvedFolderId ? { initialFolderId: resolvedFolderId } : {}),
       };
       return [...prev, newWindow];
     });
     setNextZIndex((z) => z + 1);
   }, [nextZIndex]);
+
+  const openVideoApp = useCallback((videoId: string) => {
+    openApp(AppId.TV_RETRO, undefined, videoId);
+  }, [openApp]);
 
   const closeWindow = useCallback((id: string) => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
@@ -281,7 +370,7 @@ const App: React.FC = () => {
       // Find the highest zIndex window
       const topWindow = prev.reduce((top, w) =>
         !w.isMinimized && w.zIndex > top.zIndex ? w : top
-      , prev[0]);
+        , prev[0]);
 
       if (topWindow.id === id) {
         // Already focused — minimize
@@ -301,8 +390,14 @@ const App: React.FC = () => {
     .filter((w) => !w.isMinimized)
     .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null;
 
+  const updateWindowTitle = useCallback((windowId: string, title: string) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === windowId ? { ...w, title } : w))
+    );
+  }, []);
+
   // --- Render app content inside windows ---
-  const renderApp = (appId: AppId): React.ReactNode => {
+  const renderApp = (appId: AppId, windowState: WindowState): React.ReactNode => {
     switch (appId) {
       case AppId.PROJECTS:
         return (
@@ -339,17 +434,36 @@ const App: React.FC = () => {
         return <MyAppsApp onOpenApp={openApp} />;
       case AppId.CALCULATOR:
         return <CalculatorApp />;
-      case AppId.MY_DOCUMENTS:
-      case AppId.MY_PICTURES:
-      case AppId.MY_MUSIC:
+      case AppId.TODOS:
+        return <TodosApp />;
+      case AppId.CURRENCY_CONVERTER:
+        return <CurrencyConverterApp />;
+      case AppId.WORLD_CLOCK:
+        return <WorldClockApp />;
+      case AppId.WEATHER:
+        return <WeatherApp />;
+      case AppId.CAMERA:
+        return <CameraApp />;
+      case AppId.TV_RETRO:
+        return (
+          <TVRetroApp
+            initialVideoId={windowState.videoId}
+          />
+        );
       case AppId.MY_COMPUTER:
+        return (
+          <FileExplorerApp
+            initialFolderId={windowState.initialFolderId}
+            onTitleChange={(title) => updateWindowTitle(windowState.id, title)}
+            onOpenVideo={openVideoApp}
+          />
+        );
       case AppId.MY_RECENT_DOCS:
       case AppId.MY_GAMES:
       case AppId.MY_PROJECTS:
         return (
           <FileExplorerApp
             folderName={APP_CONFIGS[appId].title}
-            files={MOCK_FILES[appId] || []}
           />
         );
       default:

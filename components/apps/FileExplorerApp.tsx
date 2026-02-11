@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FileItem } from '../../types';
 import { playClick } from '../../utils/sounds';
+import useFileExplorerNavigation from '../../hooks/useFileExplorerNavigation';
 
-interface FileExplorerAppProps {
-  folderName: string;
-  files: FileItem[];
+interface NavigableProps {
+  initialFolderId?: string;
+  onTitleChange?: (title: string) => void;
+  onOpenVideo?: (videoId: string) => void;
+  folderName?: never;
 }
+
+interface StaticProps {
+  folderName: string;
+  initialFolderId?: never;
+  onTitleChange?: never;
+  onOpenVideo?: never;
+}
+
+type FileExplorerAppProps = NavigableProps | StaticProps;
 
 const FILE_TYPE_COLORS: Record<FileItem['type'], string> = {
   folder: '#f2cc8f',
@@ -25,46 +37,147 @@ const FILE_TYPE_ICONS: Record<FileItem['type'], string> = {
   app: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
 };
 
-const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ folderName, files }) => {
+const NAV_BUTTON_BASE = 'w-7 h-7 border-[2px] border-black flex items-center justify-center transition-all duration-75';
+const NAV_BUTTON_ENABLED = 'bg-white hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px]';
+const NAV_BUTTON_DISABLED = 'bg-white opacity-40 cursor-default';
+
+const FileExplorerApp: React.FC<FileExplorerAppProps> = (props) => {
+  const isNavigable = !('folderName' in props && props.folderName !== undefined);
+
+  // Always call the hook (React rules of hooks) — ignored in static mode
+  const nav = useFileExplorerNavigation({
+    initialFolderId: isNavigable ? (props as NavigableProps).initialFolderId : undefined,
+  });
+
+  const onTitleChange = isNavigable ? (props as NavigableProps).onTitleChange : undefined;
+
+  // Track external folder changes from props (e.g., Start Menu re-click)
+  const lastFolderIdRef = useRef((props as NavigableProps).initialFolderId);
+  useEffect(() => {
+    if (!isNavigable) return;
+    const incoming = (props as NavigableProps).initialFolderId;
+    if (incoming && incoming !== lastFolderIdRef.current && incoming !== nav.currentFolderId) {
+      nav.navigateTo(incoming);
+      lastFolderIdRef.current = incoming;
+    }
+  });
+
+  // Dynamic window title
+  useEffect(() => {
+    if (!isNavigable || !onTitleChange) return;
+    const currentBreadcrumb = nav.breadcrumbs[nav.breadcrumbs.length - 1];
+    onTitleChange(currentBreadcrumb?.name ?? 'My Computer');
+  }, [isNavigable, nav.currentFolderId]);
+
+  const files = isNavigable ? nav.children : [];
+  const folderName = isNavigable ? undefined : (props as StaticProps).folderName;
+
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // TODO(human): Implement getFileExtension and add an extension badge to the grid view icons.
-  // The function below extracts the extension — modify it to return just the uppercase
-  // extension without the dot (e.g., "PDF", "JPG"). Then in the grid view's icon <div>,
-  // add a small absolutely-positioned badge showing this extension.
-  // Hint: you'll need to add `relative` to the icon's parent div className.
-  const getFileExtension = (name: string): string => {
-    const parts = name.split('.');
-    return parts.length > 1 ? `.${parts[parts.length - 1]}` : '';
+  // Clear selection when navigating
+  useEffect(() => {
+    setSelectedFile(null);
+  }, [nav.currentFolderId]);
+
+  const handleItemClick = (fileId: string, e: React.MouseEvent) => {
+    playClick();
+    e.stopPropagation();
+    setSelectedFile(fileId === selectedFile ? null : fileId);
+  };
+
+  const handleItemDoubleClick = (file: FileItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // If it's a video file and we have the video opener callback
+    if (file.type === 'video' && file.videoId && isNavigable && (props as NavigableProps).onOpenVideo) {
+      playClick();
+      (props as NavigableProps).onOpenVideo!(file.videoId);
+      return;
+    }
+
+    if (file.type === 'folder' && isNavigable) {
+      playClick();
+      nav.navigateTo(file.id);
+    }
+  };
+
+  const renderBreadcrumbs = () => {
+    if (!isNavigable) {
+      return (
+        <>
+          <span className="text-gray-400 mr-1">C:\</span>
+          <span className="font-bold">{folderName}</span>
+        </>
+      );
+    }
+
+    return nav.breadcrumbs.map((crumb, i) => {
+      const isLast = i === nav.breadcrumbs.length - 1;
+      return (
+        <React.Fragment key={crumb.id}>
+          {i > 0 && <span className="text-gray-400 mx-1">&gt;</span>}
+          {isLast ? (
+            <span className="font-bold">{crumb.name}</span>
+          ) : (
+            <button
+              onClick={() => { playClick(); nav.navigateTo(crumb.id); }}
+              className="font-bold text-gray-500 hover:text-black hover:underline"
+            >
+              {crumb.name}
+            </button>
+          )}
+        </React.Fragment>
+      );
+    });
   };
 
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Toolbar */}
       <div className="flex items-center gap-1 px-2 py-1.5 bg-[#fdf6e3] border-b-[2px] border-black shrink-0">
-        {/* Navigation buttons */}
-        <button className="w-7 h-7 border-[2px] border-black bg-white flex items-center justify-center hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px] transition-all duration-75 opacity-40 cursor-default">
+        {/* Back button */}
+        <button
+          disabled={!nav.canGoBack}
+          onClick={() => { if (nav.canGoBack) { playClick(); nav.goBack(); } }}
+          className={`${NAV_BUTTON_BASE} ${nav.canGoBack ? NAV_BUTTON_ENABLED : NAV_BUTTON_DISABLED}`}
+        >
           <svg className="w-3.5 h-3.5" fill="none" stroke="black" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <button className="w-7 h-7 border-[2px] border-black bg-white flex items-center justify-center hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px] transition-all duration-75 opacity-40 cursor-default">
+        {/* Forward button */}
+        <button
+          disabled={!nav.canGoForward}
+          onClick={() => { if (nav.canGoForward) { playClick(); nav.goForward(); } }}
+          className={`${NAV_BUTTON_BASE} ${nav.canGoForward ? NAV_BUTTON_ENABLED : NAV_BUTTON_DISABLED}`}
+        >
           <svg className="w-3.5 h-3.5" fill="none" stroke="black" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
+        {/* Up button — only shown in navigable mode */}
+        {isNavigable && (
+          <button
+            disabled={!nav.canGoUp}
+            onClick={() => { if (nav.canGoUp) { playClick(); nav.goUp(); } }}
+            className={`${NAV_BUTTON_BASE} ${nav.canGoUp ? NAV_BUTTON_ENABLED : NAV_BUTTON_DISABLED}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="black" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+        )}
 
         <div className="w-[1px] h-5 bg-black/20 mx-1" />
 
         {/* View mode toggles */}
         <button
           onClick={() => { playClick(); setViewMode('grid'); }}
-          className={`w-7 h-7 border-[2px] border-black flex items-center justify-center transition-all duration-75 ${
-            viewMode === 'grid'
-              ? 'bg-[#81b29a] shadow-none translate-x-[1px] translate-y-[1px]'
-              : 'bg-white hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px]'
-          }`}
+          className={`w-7 h-7 border-[2px] border-black flex items-center justify-center transition-all duration-75 ${viewMode === 'grid'
+            ? 'bg-[#81b29a] shadow-none translate-x-[1px] translate-y-[1px]'
+            : 'bg-white hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px]'
+            }`}
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="black" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -72,11 +185,10 @@ const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ folderName, files }) 
         </button>
         <button
           onClick={() => { playClick(); setViewMode('list'); }}
-          className={`w-7 h-7 border-[2px] border-black flex items-center justify-center transition-all duration-75 ${
-            viewMode === 'list'
-              ? 'bg-[#81b29a] shadow-none translate-x-[1px] translate-y-[1px]'
-              : 'bg-white hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px]'
-          }`}
+          className={`w-7 h-7 border-[2px] border-black flex items-center justify-center transition-all duration-75 ${viewMode === 'list'
+            ? 'bg-[#81b29a] shadow-none translate-x-[1px] translate-y-[1px]'
+            : 'bg-white hover:bg-gray-100 active:translate-x-[1px] active:translate-y-[1px]'
+            }`}
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="black" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -84,16 +196,15 @@ const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ folderName, files }) 
         </button>
       </div>
 
-      {/* Address bar */}
+      {/* Address bar with breadcrumbs */}
       <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-b-[2px] border-black shrink-0">
         <div className="w-5 h-5 border-[1.5px] border-black bg-[#f2cc8f] flex items-center justify-center shrink-0">
           <svg className="w-3 h-3" fill="none" stroke="black" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
           </svg>
         </div>
-        <div className="flex-1 flex items-center px-2 py-1 border-[2px] border-black bg-[#fdf6e3] font-mono text-xs">
-          <span className="text-gray-400 mr-1">C:\</span>
-          <span className="font-bold">{folderName}</span>
+        <div className="flex-1 flex items-center px-2 py-1 border-[2px] border-black bg-[#fdf6e3] font-mono text-xs overflow-x-auto whitespace-nowrap">
+          {renderBreadcrumbs()}
         </div>
       </div>
 
@@ -117,17 +228,13 @@ const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ folderName, files }) 
             {files.map((file) => (
               <button
                 key={file.id}
-                onClick={(e) => {
-                  playClick();
-                  e.stopPropagation();
-                  setSelectedFile(file.id === selectedFile ? null : file.id);
-                }}
-                onDoubleClick={(e) => e.stopPropagation()}
-                className={`flex flex-col items-center gap-1.5 p-3 rounded-none transition-all duration-75 ${
-                  selectedFile === file.id
+                onClick={(e) => handleItemClick(file.id, e)}
+                onDoubleClick={(e) => handleItemDoubleClick(file, e)}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-none transition-all duration-75 ${file.type === 'folder' && isNavigable ? 'cursor-pointer' : ''
+                  } ${selectedFile === file.id
                     ? 'bg-[#81b29a]/30 border-[2px] border-black'
                     : 'border-[2px] border-transparent hover:bg-[#fdf6e3]'
-                }`}
+                  }`}
               >
                 <div
                   className="w-10 h-10 border-[2px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
@@ -155,18 +262,14 @@ const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ folderName, files }) 
             {files.map((file, i) => (
               <button
                 key={file.id}
-                onClick={(e) => {
-                  playClick();
-                  e.stopPropagation();
-                  setSelectedFile(file.id === selectedFile ? null : file.id);
-                }}
-                className={`w-full flex items-center gap-2 px-2 py-1.5 transition-all duration-75 ${
-                  i < files.length - 1 ? 'border-b border-black/10' : ''
-                } ${
-                  selectedFile === file.id
+                onClick={(e) => handleItemClick(file.id, e)}
+                onDoubleClick={(e) => handleItemDoubleClick(file, e)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 transition-all duration-75 ${file.type === 'folder' && isNavigable ? 'cursor-pointer' : ''
+                  } ${i < files.length - 1 ? 'border-b border-black/10' : ''
+                  } ${selectedFile === file.id
                     ? 'bg-[#81b29a]/30'
                     : 'hover:bg-[#fdf6e3]'
-                }`}
+                  }`}
               >
                 <div
                   className="w-5 h-5 border-[1.5px] border-black flex items-center justify-center shrink-0"

@@ -4,7 +4,7 @@ import { playClick } from '../utils/sounds';
 
 interface StartMenuProps {
   appConfigs: Record<AppId, AppConfig>;
-  onOpenApp: (appId: AppId) => void;
+  onOpenApp: (appId: AppId, initialFolderId?: string) => void;
   onClose: () => void;
 }
 
@@ -17,32 +17,8 @@ const PROGRAM_ITEMS: AppId[] = [
   AppId.GAMES,
 ];
 
-// Right column: system places (XP-style folders)
+// Right column: system places (only top-level — folders live inside My Computer now)
 const PLACES_ITEMS: { appId: AppId; label: string; iconPath: string; iconBg: string }[] = [
-  {
-    appId: AppId.MY_DOCUMENTS,
-    label: 'My Documents',
-    iconPath: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    iconBg: '#f2cc8f',
-  },
-  {
-    appId: AppId.MY_RECENT_DOCS,
-    label: 'My Recent Documents',
-    iconPath: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-    iconBg: '#fdf6e3',
-  },
-  {
-    appId: AppId.MY_PICTURES,
-    label: 'My Pictures',
-    iconPath: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
-    iconBg: '#e07a5f',
-  },
-  {
-    appId: AppId.MY_MUSIC,
-    label: 'My Music',
-    iconPath: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3',
-    iconBg: '#81b29a',
-  },
   {
     appId: AppId.MY_COMPUTER,
     label: 'My Computer',
