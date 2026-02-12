@@ -78,7 +78,7 @@ AI is the multiplier, craft is the foundation.`,
   socialLinks: [
     { label: 'GitHub', url: 'https://github.com/AhjinGuild12', icon: 'github' },
     { label: 'LinkedIn', url: 'https://www.linkedin.com/in/jjmd', icon: 'linkedin' },
-    { label: 'Email', url: 'mailto:jjmd13@pm.me', icon: 'email' },
+    { label: 'Email', url: 'mailto:jantheexplorer.anyhow103@passinbox.com', icon: 'email' },
     { label: 'Website', url: 'https://www.janbmedina.com', icon: 'website' },
   ],
   projects: [
