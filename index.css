@@ -1,0 +1,398 @@
+/* ========================================
+   Light Switch Transition & Terminal Animations
+   ======================================== */
+
+/* --- Portfolio Layer (dark terminal page) --- */
+.portfolio-layer {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.15s ease-out, visibility 0s linear 0s;
+  will-change: opacity;
+}
+
+.portfolio-layer.switched-off {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out, visibility 0s linear 0.15s;
+}
+
+/* --- OS Layer (bright desktop) --- */
+.os-layer {
+  filter: brightness(0);
+  transition: filter 0.3s ease-out;
+}
+
+.os-layer.switched-on {
+  filter: brightness(1);
+}
+
+/* --- White Flash Overlay --- */
+.light-flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 10001;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.light-flash.active {
+  opacity: 0.8;
+}
+
+/* --- Blinking Terminal Cursor --- */
+.terminal-cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  background-color: #4ade80;
+  vertical-align: text-bottom;
+  animation: cursor-blink 1s step-end infinite;
+  margin-left: 1px;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* --- Enter Hint Fade-In --- */
+.enter-hint {
+  opacity: 0;
+  animation: hint-fade-in 1.5s ease forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes hint-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Profile Picture --- */
+.profile-pic {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
+  flex-shrink: 0;
+}
+
+.profile-pic-appear {
+  opacity: 0;
+  animation: profile-fade 0.6s ease forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes profile-fade {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- Section Fade-In --- */
+.section-fade-in {
+  animation: section-appear 0.4s ease forwards;
+}
+
+@keyframes section-appear {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- CRT Scanline Overlay --- */
+.scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* --- Social Link Fade-In --- */
+.social-links-enter {
+  opacity: 0;
+  animation: social-fade 0.8s ease forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes social-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Light Switch Component --- */
+.light-switch-appear {
+  opacity: 0;
+  animation: switch-fade 0.6s ease forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes switch-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.light-switch-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  perspective: 200px;
+}
+
+.light-switch-button:focus-visible .light-switch-plate {
+  outline: 2px solid #4ade80;
+  outline-offset: 4px;
+}
+
+/* Wall plate */
+.light-switch-plate {
+  position: relative;
+  width: 60px;
+  height: 94px;
+  background: linear-gradient(180deg, #eae6e1 0%, #ddd9d4 100%);
+  border-radius: 6px;
+  border: 1px solid #c8c4bf;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  transition: box-shadow 0.2s ease;
+}
+
+.light-switch-button:hover .light-switch-plate {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 0 12px rgba(74, 222, 128, 0.15);
+}
+
+/* Screws */
+.light-switch-screw {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4d0cb 0%, #b8b4af 100%);
+  border: 1px solid #a8a4a0;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Screw slot line */
+.light-switch-screw::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 1px;
+  background: #999;
+  transform: translate(-50%, -50%) rotate(-30deg);
+}
+
+/* Toggle slot (dark opening in plate) */
+.light-switch-toggle-slot {
+  width: 20px;
+  height: 34px;
+  background: #1a1a1a;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  perspective: 180px;
+}
+
+/* Toggle lever */
+.light-switch-toggle {
+  width: 16px;
+  height: 28px;
+  background: linear-gradient(180deg, #e0dcd7 0%, #c8c4bf 40%, #d4d0cb 100%);
+  border-radius: 2px;
+  border: 1px solid #b0aca7;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: rotateX(-20deg);
+  transform-origin: center bottom;
+  transition: transform 0.15s ease-in-out;
+}
+
+/* Toggle flipped to ON (up) */
+.light-switch-toggle.is-on {
+  transform: rotateX(20deg);
+  transform-origin: center top;
+  box-shadow:
+    0 -2px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Small ridge on the toggle for tactile feel */
+.light-switch-toggle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 1.5px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 1px;
+  bottom: 6px;
+}
+
+.light-switch-toggle.is-on::after {
+  bottom: auto;
+  top: 6px;
+}
+
+.light-switch-button:active .light-switch-toggle {
+  transform: rotateX(20deg);
+  transform-origin: center top;
+}
+
+/* ========================================
+   Expandable Project Cards
+   ======================================== */
+
+.project-cards-enter {
+  opacity: 0;
+  animation: project-cards-fade 0.5s ease forwards;
+}
+
+@keyframes project-cards-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.project-card {
+  border-bottom: 1px solid #222;
+}
+
+.project-card:last-child {
+  border-bottom: none;
+}
+
+.project-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 8px 6px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: #d4d4d4;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  border-radius: 4px;
+}
+
+.project-card-header:hover {
+  background-color: rgba(74, 222, 128, 0.06);
+  color: #4ade80;
+}
+
+.project-card-label {
+  white-space: pre;
+  font-family: inherit;
+}
+
+.project-card-chevron {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: #555;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.project-card-chevron.expanded {
+  transform: rotate(90deg);
+  color: #4ade80;
+}
+
+/* Dropdown expand/collapse */
+.project-dropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.project-dropdown.open {
+  max-height: 200px;
+}
+
+.project-dropdown-inner {
+  padding: 4px 6px 12px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.project-summary {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #999;
+  margin: 0;
+}
+
+/* "In Progress" badge */
+.project-badge {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+/* Project links */
+.project-link {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.8125rem;
+  color: #4ade80;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.project-link:hover {
+  color: #86efac;
+  text-decoration: underline;
+}
+
+/* CTA text */
+.project-cta {
+  font-size: 0.8125rem;
+  color: #4ade80;
+  margin: 0;
+  opacity: 0.8;
+  font-style: italic;
+}

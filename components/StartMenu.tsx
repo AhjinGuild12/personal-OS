@@ -6,6 +6,7 @@ interface StartMenuProps {
   appConfigs: Record<AppId, AppConfig>;
   onOpenApp: (appId: AppId, initialFolderId?: string) => void;
   onClose: () => void;
+  onShutDown: () => void;
 }
 
 // Left column: programs (existing apps)
@@ -45,7 +46,7 @@ const PLACES_ITEMS: { appId: AppId; label: string; iconPath: string; iconBg: str
   },
 ];
 
-const StartMenu: React.FC<StartMenuProps> = ({ appConfigs, onOpenApp, onClose }) => {
+const StartMenu: React.FC<StartMenuProps> = ({ appConfigs, onOpenApp, onClose, onShutDown }) => {
   return (
     <>
       {/* Backdrop */}
@@ -134,7 +135,7 @@ const StartMenu: React.FC<StartMenuProps> = ({ appConfigs, onOpenApp, onClose })
         {/* ─── Footer — Shut Down ─── */}
         <div className="flex items-center justify-between px-3 py-2 border-t-[3px] border-black bg-[#fdf6e3]">
           <button
-            onClick={() => { playClick(); onClose(); }}
+            onClick={() => { playClick(); onShutDown(); }}
             className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#e07a5f]/20 active:bg-black active:text-white transition-colors duration-75 group"
           >
             <div className="w-6 h-6 border-[2px] border-black bg-[#e07a5f] flex items-center justify-center group-active:shadow-none shrink-0">

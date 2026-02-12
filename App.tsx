@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Desktop from './components/Desktop';
 import WindowManager from './components/WindowManager';
 import Taskbar from './components/Taskbar';
@@ -17,6 +17,7 @@ import WorldClockApp from './components/apps/WorldClockApp';
 import WeatherApp from './components/apps/WeatherApp';
 import CameraApp from './components/apps/CameraApp';
 import TVRetroApp from './components/apps/TVRetroApp';
+import PortfolioPage from './components/PortfolioPage';
 import { FOLDER_IDS, getChildren } from './data/fileSystem';
 import {
   AppId,
@@ -200,10 +201,40 @@ const cascadePosition = (): Position => {
 };
 
 const App: React.FC = () => {
+  // Portfolio & light-switch state
+  const [isPortfolioVisible, setIsPortfolioVisible] = useState(true);
+  const [portfolioKey, setPortfolioKey] = useState(0);
+  const [showFlash, setShowFlash] = useState(false);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
   // Window state
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1);
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
+
+  // Clean up flash timer on unmount
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    };
+  }, []);
+
+  // Enter OS: flash + switch off portfolio
+  const handleEnterOS = useCallback(() => {
+    setShowFlash(true);
+    flashTimerRef.current = setTimeout(() => {
+      setShowFlash(false);
+    }, 200);
+    setIsPortfolioVisible(false);
+  }, []);
+
+  // Shut Down: return to portfolio with typewriter reset
+  const handleShutDown = useCallback(() => {
+    setIsPortfolioVisible(true);
+    setPortfolioKey((k) => k + 1);
+    setIsStartMenuOpen(false);
+    setWindows([]);
+  }, []);
 
   // App data (shared across windows)
   const [tasks, setTasks] = useState<Task[]>([
@@ -473,44 +504,58 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen w-screen overflow-hidden relative select-none">
-      {/* Desktop layer */}
-      <Desktop
-        shortcuts={DESKTOP_SHORTCUTS}
-        onOpenApp={openApp}
-        onClickBackground={() => setIsStartMenuOpen(false)}
-      />
-
-      {/* Window layer */}
-      <WindowManager
-        windows={windows}
-        appConfigs={APP_CONFIGS}
-        onClose={closeWindow}
-        onMinimize={minimizeWindow}
-        onMaximize={maximizeWindow}
-        onFocus={focusWindow}
-        onUpdatePosition={updateWindowPosition}
-        onUpdateSize={updateWindowSize}
-        renderApp={renderApp}
-      />
-
-      {/* Start menu (above taskbar) */}
-      {isStartMenuOpen && (
-        <StartMenu
-          appConfigs={APP_CONFIGS}
+      {/* OS Layer — always rendered underneath */}
+      <div className={`absolute inset-0 os-layer${!isPortfolioVisible ? ' switched-on' : ''}`}>
+        {/* Desktop layer */}
+        <Desktop
+          shortcuts={DESKTOP_SHORTCUTS}
           onOpenApp={openApp}
-          onClose={() => setIsStartMenuOpen(false)}
+          onClickBackground={() => setIsStartMenuOpen(false)}
         />
-      )}
 
-      {/* Taskbar */}
-      <Taskbar
-        windows={windows}
-        appConfigs={APP_CONFIGS}
-        isStartMenuOpen={isStartMenuOpen}
-        onToggleStartMenu={() => setIsStartMenuOpen((prev) => !prev)}
-        onWindowClick={handleTaskbarWindowClick}
-        focusedWindowId={focusedWindowId}
-      />
+        {/* Window layer */}
+        <WindowManager
+          windows={windows}
+          appConfigs={APP_CONFIGS}
+          onClose={closeWindow}
+          onMinimize={minimizeWindow}
+          onMaximize={maximizeWindow}
+          onFocus={focusWindow}
+          onUpdatePosition={updateWindowPosition}
+          onUpdateSize={updateWindowSize}
+          renderApp={renderApp}
+        />
+
+        {/* Start menu (above taskbar) */}
+        {isStartMenuOpen && (
+          <StartMenu
+            appConfigs={APP_CONFIGS}
+            onOpenApp={openApp}
+            onClose={() => setIsStartMenuOpen(false)}
+            onShutDown={handleShutDown}
+          />
+        )}
+
+        {/* Taskbar */}
+        <Taskbar
+          windows={windows}
+          appConfigs={APP_CONFIGS}
+          isStartMenuOpen={isStartMenuOpen}
+          onToggleStartMenu={() => setIsStartMenuOpen((prev) => !prev)}
+          onWindowClick={handleTaskbarWindowClick}
+          focusedWindowId={focusedWindowId}
+        />
+      </div>
+
+      {/* Light flash overlay */}
+      <div className={`light-flash${showFlash ? ' active' : ''}`} />
+
+      {/* Portfolio Layer — switches off to reveal OS */}
+      <div
+        className={`absolute inset-0 z-[10000] portfolio-layer${!isPortfolioVisible ? ' switched-off' : ''}`}
+      >
+        <PortfolioPage key={portfolioKey} onEnter={handleEnterOS} />
+      </div>
     </div>
   );
 };
