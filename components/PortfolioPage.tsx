@@ -191,7 +191,17 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({ onEnter }) => {
               Jan Medina
             </h1>
             <p className="text-sm" style={{ color: '#888' }}>
-              IT Professional &middot; App Builder &middot; Auckland, NZ
+              IT Professional &middot; App Builder &middot;{' '}
+              <a
+                href="https://www.google.com/maps/place/Auckland,+New+Zealand"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#888', textDecoration: 'none', transition: 'color 0.2s' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#4ade80')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#888')}
+              >
+                Auckland, NZ
+              </a>
             </p>
           </div>
           <img
