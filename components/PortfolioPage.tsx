@@ -204,11 +204,6 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({ onEnter }) => {
               </a>
             </p>
           </div>
-          <img
-            src="/profile.png"
-            alt="Jan Medina"
-            className="profile-pic profile-pic-appear"
-          />
         </div>
 
         {/* Typed sections */}
