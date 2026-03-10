@@ -1,6 +1,7 @@
 import React from 'react';
 import DesktopIcon from './DesktopIcon';
 import { AppId, DesktopShortcut } from '../types';
+import { useTheme } from './ThemeContext';
 
 interface DesktopProps {
   shortcuts: DesktopShortcut[];
@@ -9,30 +10,33 @@ interface DesktopProps {
 }
 
 const Desktop: React.FC<DesktopProps> = ({ shortcuts, onOpenApp, onClickBackground }) => {
+  const { theme, themeId } = useTheme();
+  const dt = theme.desktop;
+
   return (
     <div
-      className="absolute inset-0 bottom-12"
+      className="absolute inset-0"
+      data-testid="desktop"
+      data-theme-id={themeId}
       style={{
-        backgroundColor: '#fdf6e3',
-        backgroundImage: `
-          radial-gradient(circle at 20% 80%, rgba(129,178,154,0.15) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(242,204,143,0.15) 0%, transparent 50%),
-          radial-gradient(circle at 50% 50%, rgba(224,122,95,0.08) 0%, transparent 60%)
-        `,
+        backgroundColor: dt.backgroundColor,
+        backgroundImage: dt.backgroundImage,
       }}
       onClick={onClickBackground}
     >
-      {/* Subtle grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,0,0,1) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-        }}
-      />
+      {dt.showGrid && (
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          data-testid="desktop-grid"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0,0,0,1) 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+          }}
+        />
+      )}
 
       {/* Desktop icons — left column */}
       <div

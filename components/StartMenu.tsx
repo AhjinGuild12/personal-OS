@@ -1,5 +1,7 @@
-import React from 'react';
-import { AppId, AppConfig } from '../types';
+import React, { useState } from 'react';
+import { AppConfig, AppId } from '../types';
+import { useTheme } from './ThemeContext';
+import type { ThemeId } from '../theme';
 import { playClick } from '../utils/sounds';
 
 interface StartMenuProps {
@@ -46,49 +48,233 @@ const PLACES_ITEMS: { appId: AppId; label: string; iconPath: string; iconBg: str
   },
 ];
 
+const THEME_OPTIONS: { id: ThemeId; label: string; dot: string }[] = [
+  { id: 'neo', label: 'Neo OS', dot: '#fdf6e3' },
+  { id: 'xp', label: 'Windows XP', dot: '#3168d5' },
+  { id: 'aqua', label: 'Mac OS X', dot: '#5ac8fa' },
+];
+
 const StartMenu: React.FC<StartMenuProps> = ({ appConfigs, onOpenApp, onClose, onShutDown }) => {
+  const { themeId, theme, setTheme } = useTheme();
+  const isAqua = themeId === 'aqua';
+  const [showThemePicker, setShowThemePicker] = useState(false);
+  const sm = theme.startMenu;
+  const myComputerConfig = appConfigs[AppId.MY_COMPUTER];
+
+  const osLabel =
+    themeId === 'xp' ? 'Windows XP'
+      : themeId === 'aqua' ? 'Mac OS X'
+        : 'NEO OS';
+
+  const renderIconTile = (iconPath: string, backgroundColor: string, sizeClassName = 'w-8 h-8', iconClassName = 'w-4 h-4') => (
+    <div
+      className={`${sizeClassName} flex items-center justify-center shrink-0`}
+      style={{
+        backgroundColor,
+        border: sm.iconBorder,
+        boxShadow: sm.iconShadow,
+        borderRadius: sm.iconRadius,
+      }}
+    >
+      <svg className={iconClassName} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d={iconPath} />
+      </svg>
+    </div>
+  );
+
+  if (isAqua) {
+    return (
+      <>
+        <div className="absolute inset-0 z-[9998]" onClick={onClose} />
+
+        <div
+          className="absolute bottom-0 left-1/2 z-[9999] w-[320px] max-w-[calc(100vw-1rem)] -translate-x-1/2"
+          data-testid="start-menu"
+          data-theme-id={themeId}
+          style={{
+            background: sm.bg,
+            border: sm.border,
+            boxShadow: sm.shadow,
+            borderRadius: sm.borderRadius,
+          }}
+        >
+          <div
+            className="flex items-center gap-3 px-4 py-3"
+            style={{
+              background: sm.headerBg,
+              borderBottom: `1px solid ${sm.dividerColor}`,
+              borderRadius: `${parseInt(sm.borderRadius, 10) - 2}px ${parseInt(sm.borderRadius, 10) - 2}px 0 0`,
+            }}
+          >
+            <div
+              className="w-10 h-10 flex items-center justify-center shrink-0"
+              style={{
+                border: sm.iconBorder,
+                boxShadow: sm.iconShadow,
+                borderRadius: sm.iconRadius,
+                backgroundColor: '#e8e8e8',
+              }}
+            >
+              <span className="font-heading font-black text-sm" style={{ color: sm.headerTextColor }}>JM</span>
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-heading font-black text-sm tracking-tight leading-tight" style={{ color: sm.headerTextColor }}>Finder</h2>
+              <p className="text-[10px] font-bold opacity-70" style={{ color: sm.headerTextColor }}>System & navigation</p>
+            </div>
+          </div>
+
+          <div className="px-3 py-2">
+            <span className="px-1 text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: sm.sectionLabelColor }}>System</span>
+
+            <div className="mt-2 flex flex-col gap-1">
+              <button
+                onClick={() => { playClick(); onOpenApp(AppId.MY_COMPUTER); onClose(); }}
+                className="w-full rounded-[8px] px-3 py-2 flex items-center gap-3 text-left transition-colors duration-75"
+                data-testid="start-place-my-computer"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.programsHover)}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                {renderIconTile(myComputerConfig.iconPath, myComputerConfig.iconBg)}
+                <span className="font-bold text-sm">My Computer</span>
+              </button>
+
+              <button
+                onClick={() => { playClick(); setShowThemePicker((prev) => !prev); }}
+                className="w-full rounded-[8px] px-3 py-2 flex items-center gap-3 text-left transition-colors duration-75"
+                data-testid="change-theme-button"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.programsHover)}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                {renderIconTile('M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01', '#c4b5fd')}
+                <span className="font-bold text-sm flex-1">Change Theme</span>
+                <svg className={`w-3 h-3 transition-transform ${showThemePicker ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {showThemePicker && (
+                <div
+                  className="mx-2 overflow-hidden rounded-[8px]"
+                  style={{ border: sm.iconBorder, background: sm.programsBg }}
+                >
+                  {THEME_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => { playClick(); setTheme(opt.id); }}
+                      className="w-full px-3 py-2 flex items-center gap-2.5 text-left transition-colors duration-75"
+                      data-testid={`theme-option-${opt.id}`}
+                      data-selected={themeId === opt.id ? 'true' : 'false'}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.programsHover)}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full shrink-0"
+                        style={{ backgroundColor: opt.dot, border: '2px solid rgba(0,0,0,0.2)' }}
+                      />
+                      <span className="font-bold text-xs flex-1">{opt.label}</span>
+                      {themeId === opt.id && (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="flex items-center justify-between gap-3 px-3 py-2"
+            style={{ borderTop: `1px solid ${sm.dividerColor}`, background: sm.footerBg }}
+          >
+            <button
+              onClick={() => { playClick(); onShutDown(); }}
+              className="flex items-center gap-2 rounded-[8px] px-3 py-1.5 transition-colors duration-75"
+              data-testid="start-shutdown"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(224,122,95,0.2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              {renderIconTile('M5.636 5.636a9 9 0 1012.728 0M12 3v9', '#e07a5f', 'w-6 h-6', 'w-3 h-3')}
+              <span className="text-xs font-black">Shut Down</span>
+            </button>
+            <span className="text-[9px] font-bold" style={{ color: sm.sectionLabelColor }}>{osLabel}</span>
+            <span className="sr-only" data-testid="start-menu-os-label">{osLabel}</span>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-[9998]" onClick={onClose} />
+      <div className="absolute inset-0 z-[9998]" onClick={onClose} />
 
-      {/* Menu */}
-      <div className="fixed bottom-12 left-0 z-[9999] w-[420px] bg-white border-[3px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        {/* ─── User Header ─── */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-[#81b29a] border-b-[3px] border-black">
-          <div className="w-11 h-11 border-[3px] border-black bg-[#f2cc8f] flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-            <span className="font-heading font-black text-sm">JM</span>
+      <div
+        className="absolute bottom-0 left-0 z-[9999] w-[420px] max-w-[calc(100vw-1rem)]"
+        data-testid="start-menu"
+        data-theme-id={themeId}
+        style={{
+          background: sm.bg,
+          border: sm.border,
+          boxShadow: sm.shadow,
+          borderRadius: sm.borderRadius,
+        }}
+      >
+        <div
+          className="flex items-center gap-3 px-4 py-3"
+          style={{
+            background: sm.headerBg,
+            borderBottom: sm.footerBorder,
+            borderRadius: sm.borderRadius !== '0' ? `${Math.max(parseInt(sm.borderRadius, 10) - 2, 0)}px ${Math.max(parseInt(sm.borderRadius, 10) - 2, 0)}px 0 0` : '0',
+          }}
+        >
+          <div
+            className="w-11 h-11 flex items-center justify-center shrink-0"
+            style={{
+              border: sm.iconBorder,
+              boxShadow: sm.iconShadow,
+              borderRadius: sm.iconRadius,
+              backgroundColor: themeId === 'neo' ? '#f2cc8f' : themeId === 'xp' ? '#d3e5fa' : '#e8e8e8',
+            }}
+          >
+            <span className="font-heading font-black text-sm" style={{ color: sm.headerTextColor }}>JM</span>
           </div>
           <div>
-            <h2 className="font-heading font-black text-sm tracking-tight leading-tight">Jan M</h2>
-            <p className="text-[10px] font-bold opacity-70">Neo Personal OS v2.0</p>
+            <h2 className="font-heading font-black text-sm tracking-tight leading-tight" style={{ color: sm.headerTextColor }}>Jan M</h2>
+            <p className="text-[10px] font-bold opacity-70" style={{ color: sm.headerTextColor }}>Personal OS v2.0</p>
           </div>
         </div>
 
-        {/* ─── Two-Column Body ─── */}
         <div className="flex">
-          {/* Left Column — Programs */}
-          <div className="flex-1 border-r-[2px] border-black bg-white">
-            <div className="px-3 py-1.5 border-b-[1px] border-black/10">
-              <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400">Programs</span>
+          <div className="flex-1" style={{ borderRight: `2px solid ${sm.dividerColor}`, background: sm.programsBg }}>
+            <div className="px-3 py-1.5" style={{ borderBottom: `1px solid ${sm.dividerColor}` }}>
+              <span className="text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: sm.sectionLabelColor }}>Programs</span>
             </div>
             <div className="py-0.5">
               {PROGRAM_ITEMS.map((appId) => {
                 const config = appConfigs[appId];
-                if (!config) return null;
+                if (!config) {
+                  return null;
+                }
+
                 return (
                   <button
                     key={appId}
-                    onClick={() => {
-                      playClick();
-                      onOpenApp(appId);
-                      onClose();
-                    }}
-                    className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[#81b29a]/15 active:bg-black active:text-white transition-colors duration-75 group"
+                    onClick={() => { playClick(); onOpenApp(appId); onClose(); }}
+                    className="w-full px-3 py-2 flex items-center gap-3 active:bg-black active:text-white transition-colors duration-75 group"
+                    data-testid={`start-program-${appId}`}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.programsHover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <div
-                      className="w-8 h-8 border-[2px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-active:shadow-none group-active:translate-x-[1px] group-active:translate-y-[1px] shrink-0"
-                      style={{ backgroundColor: config.iconBg }}
+                      className="w-8 h-8 flex items-center justify-center group-active:shadow-none group-active:translate-x-[1px] group-active:translate-y-[1px] shrink-0"
+                      style={{
+                        backgroundColor: config.iconBg,
+                        border: sm.iconBorder,
+                        boxShadow: sm.iconShadow,
+                        borderRadius: sm.iconRadius,
+                      }}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d={config.iconPath} />
@@ -98,28 +284,83 @@ const StartMenu: React.FC<StartMenuProps> = ({ appConfigs, onOpenApp, onClose, o
                   </button>
                 );
               })}
+
+              <button
+                onClick={() => { playClick(); setShowThemePicker((prev) => !prev); }}
+                className="w-full px-3 py-2 flex items-center gap-3 active:bg-black active:text-white transition-colors duration-75 group"
+                data-testid="change-theme-button"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.programsHover)}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <div
+                  className="w-8 h-8 flex items-center justify-center group-active:shadow-none group-active:translate-x-[1px] group-active:translate-y-[1px] shrink-0"
+                  style={{
+                    backgroundColor: '#c4b5fd',
+                    border: sm.iconBorder,
+                    boxShadow: sm.iconShadow,
+                    borderRadius: sm.iconRadius,
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                </div>
+                <span className="font-bold text-sm">Change Theme</span>
+                <svg className={`w-3 h-3 ml-auto transition-transform ${showThemePicker ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {showThemePicker && (
+                <div className="mx-3 mb-1 overflow-hidden" style={{ border: sm.iconBorder, borderRadius: sm.iconRadius }}>
+                  {THEME_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => { playClick(); setTheme(opt.id); }}
+                      className="w-full px-3 py-2 flex items-center gap-2.5 text-left transition-colors duration-75"
+                      data-testid={`theme-option-${opt.id}`}
+                      data-selected={themeId === opt.id ? 'true' : 'false'}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.programsHover)}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full shrink-0"
+                        style={{ backgroundColor: opt.dot, border: '2px solid rgba(0,0,0,0.2)' }}
+                      />
+                      <span className="font-bold text-xs flex-1">{opt.label}</span>
+                      {themeId === opt.id && (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column — Places */}
-          <div className="flex-1 bg-[#fdf6e3]">
-            <div className="px-3 py-1.5 border-b-[1px] border-black/10">
-              <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400">Places</span>
+          <div className="flex-1" style={{ background: sm.placesBg }}>
+            <div className="px-3 py-1.5" style={{ borderBottom: `1px solid ${sm.dividerColor}` }}>
+              <span className="text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: sm.sectionLabelColor }}>Places</span>
             </div>
             <div className="py-0.5">
               {PLACES_ITEMS.map((item) => (
                 <button
                   key={item.appId}
-                  onClick={() => {
-                    playClick();
-                    onOpenApp(item.appId);
-                    onClose();
-                  }}
-                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[#f2cc8f]/30 active:bg-black active:text-white transition-colors duration-75 group"
+                  onClick={() => { playClick(); onOpenApp(item.appId); onClose(); }}
+                  className="w-full px-3 py-2 flex items-center gap-3 active:bg-black active:text-white transition-colors duration-75 group"
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = sm.placesHover)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <div
-                    className="w-7 h-7 border-[2px] border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-active:shadow-none group-active:translate-x-[1px] group-active:translate-y-[1px] shrink-0"
-                    style={{ backgroundColor: item.iconBg }}
+                    className="w-7 h-7 flex items-center justify-center group-active:shadow-none group-active:translate-x-[1px] group-active:translate-y-[1px] shrink-0"
+                    style={{
+                      backgroundColor: item.iconBg,
+                      border: sm.iconBorder,
+                      boxShadow: sm.iconShadow,
+                      borderRadius: sm.iconRadius,
+                    }}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d={item.iconPath} />
@@ -132,20 +373,33 @@ const StartMenu: React.FC<StartMenuProps> = ({ appConfigs, onOpenApp, onClose, o
           </div>
         </div>
 
-        {/* ─── Footer — Shut Down ─── */}
-        <div className="flex items-center justify-between px-3 py-2 border-t-[3px] border-black bg-[#fdf6e3]">
+        <div
+          className="flex items-center justify-between px-3 py-2"
+          style={{ borderTop: sm.footerBorder, background: sm.footerBg }}
+        >
           <button
             onClick={() => { playClick(); onShutDown(); }}
-            className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#e07a5f]/20 active:bg-black active:text-white transition-colors duration-75 group"
+            className="flex items-center gap-2 px-3 py-1.5 transition-colors duration-75 group"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = themeId === 'neo' ? 'rgba(224,122,95,0.2)' : sm.programsHover)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
-            <div className="w-6 h-6 border-[2px] border-black bg-[#e07a5f] flex items-center justify-center group-active:shadow-none shrink-0">
+            <div
+              className="w-6 h-6 flex items-center justify-center group-active:shadow-none shrink-0"
+              style={{
+                border: sm.iconBorder,
+                boxShadow: sm.iconShadow,
+                borderRadius: sm.iconRadius,
+                backgroundColor: '#e07a5f',
+              }}
+            >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
               </svg>
             </div>
             <span className="text-xs font-black">Shut Down</span>
           </button>
-          <span className="text-[9px] font-bold text-gray-400">NEO OS</span>
+          <span className="text-[9px] font-bold" style={{ color: sm.sectionLabelColor }}>{osLabel}</span>
+          <span className="sr-only" data-testid="start-menu-os-label">{osLabel}</span>
         </div>
       </div>
     </>

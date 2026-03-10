@@ -1,6 +1,7 @@
-import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { WindowState, Position, Size } from '../types';
-import { playClick } from '../utils/sounds';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Position, Size, WindowState } from '../types';
+import { useTheme } from './ThemeContext';
+import { NeoControls, TrafficLightControls, XPControls } from './WindowControls';
 
 interface WindowProps {
   window: WindowState;
@@ -16,8 +17,6 @@ interface WindowProps {
 
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 300;
-const TASKBAR_HEIGHT = 48;
-
 const Window: React.FC<WindowProps> = ({
   window: win,
   titleBarColor,
@@ -33,6 +32,8 @@ const Window: React.FC<WindowProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+  const { theme } = useTheme();
+  const taskbarHeight = theme.id === 'aqua' ? 80 : 48;
 
   // Drag handlers
   const handleTitleBarMouseDown = useCallback((e: React.MouseEvent) => {
@@ -56,7 +57,7 @@ const Window: React.FC<WindowProps> = ({
       const dx = e.clientX - dragRef.current.startX;
       const dy = e.clientY - dragRef.current.startY;
       const maxX = globalThis.innerWidth - 100;
-      const maxY = globalThis.innerHeight - TASKBAR_HEIGHT - 40;
+      const maxY = globalThis.innerHeight - taskbarHeight - 40;
       onUpdatePosition(win.id, {
         x: Math.max(-(win.size.width - 100), Math.min(dragRef.current.startPosX + dx, maxX)),
         y: Math.max(0, Math.min(dragRef.current.startPosY + dy, maxY)),
@@ -74,7 +75,7 @@ const Window: React.FC<WindowProps> = ({
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
-  }, [isDragging, win.id, win.size.width, onUpdatePosition]);
+  }, [isDragging, onUpdatePosition, taskbarHeight, win.id, win.size.width]);
 
   // Resize handlers
   const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
@@ -119,14 +120,38 @@ const Window: React.FC<WindowProps> = ({
 
   if (win.isMinimized) return null;
 
+  const wt = theme.window;
+  const cb = wt.controlButtons;
   const displayPos = win.isMaximized ? { x: 0, y: 0 } : win.position;
   const displaySize = win.isMaximized
-    ? { width: globalThis.innerWidth, height: globalThis.innerHeight - TASKBAR_HEIGHT }
+    ? { width: globalThis.innerWidth, height: globalThis.innerHeight - taskbarHeight }
     : win.size;
+
+  const resolvedTitleBg = wt.titleBarMode === 'per-app' ? titleBarColor : wt.titleBarBg;
+  const controlProps = {
+    windowId: win.id,
+    isMaximized: win.isMaximized,
+    onClose,
+    onMinimize,
+    onMaximize,
+  };
+  const controls =
+    cb.style === 'traffic-lights' ? <TrafficLightControls {...controlProps} />
+      : cb.style === 'xp-icons' ? <XPControls {...controlProps} />
+        : <NeoControls {...controlProps} />;
+  const gripColor = theme.id === 'neo' ? 'black' : 'rgba(0,0,0,0.3)';
 
   return (
     <div
       className="absolute flex flex-col select-none"
+      data-testid="window"
+      data-window-id={win.id}
+      data-window-title={win.title}
+      data-theme-id={theme.id}
+      data-control-style={cb.style}
+      data-control-position={cb.position}
+      data-title-centered={wt.titleCentered ? 'true' : 'false'}
+      data-window-maximized={win.isMaximized ? 'true' : 'false'}
       style={{
         left: displayPos.x,
         top: displayPos.y,
@@ -136,92 +161,71 @@ const Window: React.FC<WindowProps> = ({
       }}
       onMouseDown={() => onFocus(win.id)}
     >
-      {/* Window frame with neo-brutalist shadow */}
       <div
-        className={`flex flex-col h-full border-[3px] border-black bg-white ${
-          win.isMaximized ? '' : 'shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'
-        }`}
+        className="flex flex-col h-full bg-white"
+        style={{
+          border: `${wt.borderWidth} solid ${wt.borderColor}`,
+          borderRadius: win.isMaximized ? '0' : wt.borderRadius,
+          boxShadow: win.isMaximized ? 'none' : wt.shadow,
+          overflow: 'hidden',
+        }}
       >
-        {/* Title bar */}
         <div
-          className={`flex items-center gap-2 px-3 py-2 border-b-[3px] border-black shrink-0 ${
+          className={`flex items-center gap-2 shrink-0 ${
             win.isMaximized ? 'cursor-default' : isDragging ? 'cursor-grabbing' : 'cursor-grab'
           }`}
-          style={{ backgroundColor: titleBarColor }}
+          data-testid="window-titlebar"
+          style={{
+            background: resolvedTitleBg,
+            borderBottom: wt.titleBarBorderBottom,
+            padding: wt.titleBarPadding,
+            color: wt.titleBarTextColor,
+          }}
           onMouseDown={handleTitleBarMouseDown}
           onDoubleClick={() => onMaximize(win.id)}
         >
-          {/* App icon dot */}
-          <div
-            className="w-4 h-4 border-[2px] border-black shrink-0"
-            style={{ backgroundColor: titleBarColor }}
-          />
+          {cb.position === 'left' && controls}
 
-          {/* Title */}
-          <span className="font-heading font-black text-sm tracking-tight truncate flex-1 select-none">
+          {theme.id === 'neo' && (
+            <div
+              className="w-4 h-4 border-[2px] border-black shrink-0"
+              style={{ backgroundColor: titleBarColor }}
+            />
+          )}
+
+          <span
+            className={`font-heading font-black text-sm tracking-tight truncate select-none ${wt.titleCentered ? 'flex-1 text-center' : 'flex-1'}`}
+            data-testid="window-title"
+            style={{
+              color: wt.titleBarTextColor,
+              textShadow: theme.id === 'xp' ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
+            }}
+          >
             {win.title}
           </span>
 
-          {/* Window control buttons */}
-          <div className="flex gap-1.5 shrink-0" onMouseDown={(e) => e.stopPropagation()}>
-            {/* Minimize */}
-            <button
-              onClick={() => { playClick(); onMinimize(win.id); }}
-              className="w-7 h-7 border-[2px] border-black bg-white hover:bg-gray-200 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-75"
-            >
-              <svg width="10" height="2" viewBox="0 0 10 2" fill="none">
-                <rect width="10" height="2" fill="black" />
-              </svg>
-            </button>
-
-            {/* Maximize / Restore */}
-            <button
-              onClick={() => { playClick(); onMaximize(win.id); }}
-              className="w-7 h-7 border-[2px] border-black bg-white hover:bg-gray-200 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-75"
-            >
-              {win.isMaximized ? (
-                // Restore icon (two overlapping squares)
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <rect x="2" y="0" width="8" height="8" stroke="black" strokeWidth="1.5" fill="none" />
-                  <rect x="0" y="2" width="8" height="8" stroke="black" strokeWidth="1.5" fill="white" />
-                </svg>
-              ) : (
-                // Maximize icon (single square)
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <rect x="0.5" y="0.5" width="9" height="9" stroke="black" strokeWidth="1.5" fill="none" />
-                </svg>
-              )}
-            </button>
-
-            {/* Close */}
-            <button
-              onClick={() => { playClick(); onClose(win.id); }}
-              className="w-7 h-7 border-[2px] border-black bg-[#e07a5f] hover:bg-[#c9604a] flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-75"
-            >
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                <path d="M1 1L7 7M7 1L1 7" stroke="black" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
+          {cb.position === 'right' && controls}
         </div>
 
-        {/* Content area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-[#fdf6e3]">
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          data-testid="window-content"
+          style={{ backgroundColor: wt.contentBg }}
+        >
           {children}
         </div>
       </div>
 
-      {/* Resize handle (bottom-right corner) */}
       {!win.isMaximized && (
         <div
           className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-10"
+          data-testid="window-resize-handle"
           onMouseDown={handleResizeMouseDown}
         >
-          {/* Diagonal grip lines */}
           <svg width="16" height="16" viewBox="0 0 16 16" className="absolute bottom-0 right-0">
-            <line x1="14" y1="4" x2="4" y2="14" stroke="black" strokeWidth="1.5" />
-            <line x1="14" y1="8" x2="8" y2="14" stroke="black" strokeWidth="1.5" />
-            <line x1="14" y1="12" x2="12" y2="14" stroke="black" strokeWidth="1.5" />
+            <line x1="14" y1="4" x2="4" y2="14" stroke={gripColor} strokeWidth="1.5" />
+            <line x1="14" y1="8" x2="8" y2="14" stroke={gripColor} strokeWidth="1.5" />
+            <line x1="14" y1="12" x2="12" y2="14" stroke={gripColor} strokeWidth="1.5" />
           </svg>
         </div>
       )}

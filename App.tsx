@@ -18,6 +18,7 @@ import WeatherApp from './components/apps/WeatherApp';
 import CameraApp from './components/apps/CameraApp';
 import TVRetroApp from './components/apps/TVRetroApp';
 import PortfolioPage from './components/PortfolioPage';
+import { ThemeProvider } from './components/ThemeContext';
 import { FOLDER_IDS, getChildren } from './data/fileSystem';
 import {
   AppId,
@@ -180,6 +181,14 @@ const APP_CONFIGS: Record<AppId, AppConfig> = {
     iconBg: '#3d3024',
   },
 };
+
+const AQUA_DOCK_ITEMS: Array<{ id: string; appId: AppId; label: string }> = [
+  { id: 'projects', appId: AppId.PROJECTS, label: 'Projects' },
+  { id: 'tasks', appId: AppId.TASKS, label: 'Tasks' },
+  { id: 'app-store', appId: AppId.MY_APPS, label: 'App Store' },
+  { id: 'browser', appId: AppId.BROWSER, label: 'Browser' },
+  { id: 'games', appId: AppId.GAMES, label: 'Games' },
+];
 
 // --- Desktop shortcuts (what appears on the desktop) ---
 const DESKTOP_SHORTCUTS: DesktopShortcut[] = [];
@@ -416,6 +425,20 @@ const App: React.FC = () => {
     setNextZIndex((z) => z + 1);
   }, [nextZIndex]);
 
+  const handleAquaWindowClick = useCallback((id: string) => {
+    setWindows((prev) => {
+      const win = prev.find((w) => w.id === id);
+      if (!win) return prev;
+
+      return prev.map((candidate) =>
+        candidate.id === id
+          ? { ...candidate, isMinimized: false, zIndex: nextZIndex }
+          : candidate
+      );
+    });
+    setNextZIndex((z) => z + 1);
+  }, [nextZIndex]);
+
   // Figure out which window is currently focused (highest z, not minimized)
   const focusedWindowId = windows
     .filter((w) => !w.isMinimized)
@@ -503,60 +526,60 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative select-none">
-      {/* OS Layer — always rendered underneath */}
-      <div className={`absolute inset-0 os-layer${!isPortfolioVisible ? ' switched-on' : ''}`}>
-        {/* Desktop layer */}
-        <Desktop
-          shortcuts={DESKTOP_SHORTCUTS}
-          onOpenApp={openApp}
-          onClickBackground={() => setIsStartMenuOpen(false)}
-        />
+    <ThemeProvider>
+      <div className="fixed inset-0 overflow-hidden select-none">
+        <div className={`absolute inset-0 flex flex-col os-layer${!isPortfolioVisible ? ' switched-on' : ''}`}>
+          <div className="flex-1 relative min-h-0">
+            <Desktop
+              shortcuts={DESKTOP_SHORTCUTS}
+              onOpenApp={openApp}
+              onClickBackground={() => setIsStartMenuOpen(false)}
+            />
 
-        {/* Window layer */}
-        <WindowManager
-          windows={windows}
-          appConfigs={APP_CONFIGS}
-          onClose={closeWindow}
-          onMinimize={minimizeWindow}
-          onMaximize={maximizeWindow}
-          onFocus={focusWindow}
-          onUpdatePosition={updateWindowPosition}
-          onUpdateSize={updateWindowSize}
-          renderApp={renderApp}
-        />
+            <WindowManager
+              windows={windows}
+              appConfigs={APP_CONFIGS}
+              onClose={closeWindow}
+              onMinimize={minimizeWindow}
+              onMaximize={maximizeWindow}
+              onFocus={focusWindow}
+              onUpdatePosition={updateWindowPosition}
+              onUpdateSize={updateWindowSize}
+              renderApp={renderApp}
+            />
 
-        {/* Start menu (above taskbar) */}
-        {isStartMenuOpen && (
-          <StartMenu
+            {isStartMenuOpen && (
+              <StartMenu
+                appConfigs={APP_CONFIGS}
+                onOpenApp={openApp}
+                onClose={() => setIsStartMenuOpen(false)}
+                onShutDown={handleShutDown}
+              />
+            )}
+          </div>
+
+          <Taskbar
+            windows={windows}
             appConfigs={APP_CONFIGS}
-            onOpenApp={openApp}
-            onClose={() => setIsStartMenuOpen(false)}
-            onShutDown={handleShutDown}
+            isStartMenuOpen={isStartMenuOpen}
+            onToggleStartMenu={() => setIsStartMenuOpen((prev) => !prev)}
+            onWindowClick={handleTaskbarWindowClick}
+            aquaDockItems={AQUA_DOCK_ITEMS}
+            onAquaDockAppClick={(appId) => openApp(appId)}
+            onAquaWindowClick={handleAquaWindowClick}
+            focusedWindowId={focusedWindowId}
           />
-        )}
+        </div>
 
-        {/* Taskbar */}
-        <Taskbar
-          windows={windows}
-          appConfigs={APP_CONFIGS}
-          isStartMenuOpen={isStartMenuOpen}
-          onToggleStartMenu={() => setIsStartMenuOpen((prev) => !prev)}
-          onWindowClick={handleTaskbarWindowClick}
-          focusedWindowId={focusedWindowId}
-        />
+        <div className={`light-flash${showFlash ? ' active' : ''}`} />
+
+        <div
+          className={`absolute inset-0 z-[10000] portfolio-layer${!isPortfolioVisible ? ' switched-off' : ''}`}
+        >
+          <PortfolioPage key={portfolioKey} onEnter={handleEnterOS} />
+        </div>
       </div>
-
-      {/* Light flash overlay */}
-      <div className={`light-flash${showFlash ? ' active' : ''}`} />
-
-      {/* Portfolio Layer — switches off to reveal OS */}
-      <div
-        className={`absolute inset-0 z-[10000] portfolio-layer${!isPortfolioVisible ? ' switched-off' : ''}`}
-      >
-        <PortfolioPage key={portfolioKey} onEnter={handleEnterOS} />
-      </div>
-    </div>
+    </ThemeProvider>
   );
 };
 
