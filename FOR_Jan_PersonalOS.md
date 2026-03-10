@@ -7,13 +7,28 @@
 
 ## 1. Project Overview
 
-**Personal OS** is your portfolio website — but instead of a boring scrolling page with a hero section and a contact form, it's a fake desktop operating system. Think Windows XP vibes, but make it Neo-Brutalist and actually functional.
+**Personal OS** is your portfolio website — but instead of a boring scrolling page with a hero section and a contact form, it's a fake desktop operating system. It now supports **three selectable desktop themes**:
+- **Windows XP** as the default first-load experience
+- **Neo OS** as the original brutalist theme
+- **Mac OS X / Aqua** with a centered dock launcher
 
 Here's the user journey:
 1. You land on a **terminal-style page** — green text on black, typewriter animation, very "hacker movie"
 2. You flip a **physical light switch** in the corner
 3. The screen flashes white and... boom. A full desktop OS loads
-4. Inside the OS: a Start Menu, draggable windows, a Snake game, a calculator, a fake browser, a Gemini AI chat, a task manager, and more
+4. Inside the OS: a Start Menu / Finder, draggable windows, a Snake game, a calculator, a fake browser, a Gemini AI chat, a task manager, and more
+
+### Latest March 2026 Update
+
+This is the current truth for the live project:
+- The **source of truth repo is now `personal-OS`**
+- The OS now boots into **Windows XP by default**
+- There is a **Change Theme** control inside the OS UI
+- The available themes are **Neo**, **Windows XP**, and **Mac OS X**
+- The Aqua / Mac theme now uses a **centered dock-first launcher**
+- In Aqua, the dock pins: **Projects**, **Tasks**, **App Store** (`My Apps`), **Browser**, and **Games**
+- The Vercel deployment currently serves this app from the project root
+- If `/os` is needed again later, that has to be added as an explicit routing decision
 
 It's not just a cool gimmick. The portfolio content lives inside the OS apps — your projects, your skills, your contact info. It's a conversation starter, not just a resume link.
 
@@ -37,12 +52,22 @@ Think of the app as **two worlds stacked on top of each other**, like two sheets
 
 The OS layer is **always rendered in the DOM** — it's just invisible until the switch is flipped. No mounting/unmounting. The transition is purely CSS: `filter: brightness(0)` → `brightness(1)` with a white flash for the flicker effect. This is clever because it avoids a React re-render waterfall when you "boot" the OS.
 
+On top of that, there is now a **theme layer** wrapped around the whole OS. The theme layer decides:
+- desktop background
+- taskbar / dock styling
+- Start Menu / Finder styling
+- window chrome and control button style
+- whether the Mac theme uses a centered dock instead of a full-width taskbar
+
 ### How the OS Actually Works
 
 Everything is managed from one place: `App.tsx`. It's the control tower. It holds:
 - The list of all open windows and their state (position, size, z-order, minimized/maximized)
 - The app registry (what apps exist and how to render them)
 - The shared task list (used by Dashboard, TaskManager, and the Gemini AI)
+- The Aqua dock launcher metadata
+
+Theme state lives in `components/ThemeContext.tsx`, which wraps `App.tsx` and makes the current theme available to the desktop, taskbar, start menu, and window shell.
 
 When you open an app, `App.tsx` adds a new entry to the `windows` array. When you drag a window, `App.tsx` updates its `position`. When you close it, `App.tsx` removes it from the array. Every visual change flows through this single source of truth.
 
@@ -70,6 +95,7 @@ Here's the map of the territory:
 /
 ├── App.tsx              ← The brain. All window state, app registry, event handlers
 ├── types.ts             ← The vocabulary. Every shared type lives here
+├── theme.ts             ← Theme type definitions (Neo / XP / Aqua)
 ├── index.tsx            ← Entry point. Just mounts React.
 ├── index.css            ← Animations, CRT scanlines, light switch, profile pic styles
 ├── index.html           ← Loads Tailwind from CDN (unusual — see Tech Decisions)
@@ -77,6 +103,7 @@ Here's the map of the territory:
 ├── data/
 │   ├── portfolioData.ts ← Your content: name, bio, projects, social links
 │   └── fileSystem.ts    ← The fake file system (My Documents, My Pictures, etc.)
+│   └── themes.ts        ← Theme definitions for Neo, XP, and Aqua
 │
 ├── hooks/
 │   ├── useFileExplorerNavigation.ts  ← History stack + breadcrumbs for File Explorer
@@ -86,11 +113,13 @@ Here's the map of the territory:
 │   └── sounds.ts        ← That satisfying click sound on every button press
 │
 └── components/
+    ├── ThemeContext.tsx  ← Runtime theme state + setter
     ├── Window.tsx        ← Draggable + resizable window shell
+    ├── WindowControls.tsx ← Neo / XP / Mac control button variants
     ├── WindowManager.tsx ← Renders all open windows in z-order
-    ├── Taskbar.tsx       ← The bar at the bottom with the START button
-    ├── StartMenu.tsx     ← Programs + Places + Shut Down
-    ├── Desktop.tsx       ← Background gradient + desktop icons (currently empty)
+    ├── Taskbar.tsx       ← Neo taskbar, XP taskbar, or Aqua centered dock
+    ├── StartMenu.tsx     ← Start Menu or Finder panel + theme switcher
+    ├── Desktop.tsx       ← Theme-driven desktop background + optional Neo grid
     ├── PortfolioPage.tsx ← The terminal entry experience
     ├── BrainView.tsx     ← Gemini AI chat
     ├── Dashboard.tsx     ← Project overview + tasks
@@ -150,6 +179,18 @@ Normally you install Tailwind via npm and run it through PostCSS. Here it's load
 - Tailwind is configured inline in `index.html` via a `tailwind.config` object in a script tag
 
 If you ever want to deploy this seriously, migrating to the npm-based Tailwind pipeline would be a good upgrade.
+
+### Theme System (new)
+The theme system is intentionally data-driven. Instead of hard-coding XP or Mac styles inside every component, the app stores theme definitions in `data/themes.ts` and exposes the active theme via `components/ThemeContext.tsx`.
+
+That means one theme switch updates:
+- desktop wallpaper
+- taskbar vs dock layout
+- window titlebar look
+- control buttons
+- menu styling
+
+This is much cleaner than scattering `if (isXP)` checks all over the app.
 
 ### Gemini AI (`@google/genai`)
 The "Brain" app uses Google's Gemini model (`gemini-2.5-flash-preview`) for AI chat. The API key is injected at build time by Vite (not at runtime), so it never ships in client-side JS — good security hygiene. The app passes your task list as JSON context to the AI, so it can answer questions like "what should I work on today?"
@@ -216,6 +257,16 @@ The virtual file system uses a flat `Record<id, FileItem>` with `parentId` refer
 
 **Rule:** For tree-structured data you need to navigate both up and down, a flat record with `parentId` is almost always cleaner than nested objects.
 
+### Lesson 8: Theme Work Needs a Single Source of Truth
+One thing this project made painfully obvious: if GitHub, Vercel, and the live domain are not all pointing at the same repo, you'll think the code is broken when the real issue is deployment wiring.
+
+The practical lesson is:
+- pick one repo as the source of truth
+- make Vercel build from that repo
+- make the custom domain point at that same project
+
+That is now the intended setup for `personal-OS`.
+
 ---
 
 ## 6. War Stories
@@ -237,10 +288,15 @@ The `HANDOVER.md` file in the repo tells the story: this project was built acros
 |------|-------------|
 | `App.tsx` | All window state + app registry — start here |
 | `types.ts` | All shared TypeScript types — understand data shapes |
+| `theme.ts` | Theme type system — Neo / XP / Aqua |
+| `data/themes.ts` | Actual theme tokens and styling definitions |
+| `components/ThemeContext.tsx` | Current theme state + `setTheme()` |
 | `data/portfolioData.ts` | **Edit this to update your portfolio content** |
 | `data/fileSystem.ts` | Virtual file system structure |
 | `components/PortfolioPage.tsx` | Terminal entry experience + light switch |
 | `components/Window.tsx` | Draggable + resizable window implementation |
+| `components/Taskbar.tsx` | XP taskbar + Aqua dock behavior |
+| `components/StartMenu.tsx` | Start Menu / Finder + Change Theme control |
 | `utils/sounds.ts` | Click sound (Web Audio API) |
 | `public/profile.png` | Profile photo (referenced in PortfolioPage) |
 
@@ -253,6 +309,21 @@ The `HANDOVER.md` file in the repo tells the story: this project was built acros
 4. Create the component in `components/apps/`
 5. Add it to `StartMenu.tsx` if you want it accessible
 
+**To change the default theme:**
+1. Open `components/ThemeContext.tsx`
+2. Change the initial `useState` value
+3. Build and verify the first-load experience
+
+**To edit theme styling:**
+1. Open `data/themes.ts`
+2. Adjust the tokens for `neo`, `xp`, or `aqua`
+3. Rebuild and visually verify taskbar, start menu, and window chrome
+
+**Current deployment note:**
+- Source repo: `personal-OS`
+- Hosting: Vercel
+- Current live app path in this project: `/`
+
 ---
 
-*Built with React + TypeScript + Vite + Tailwind + Gemini AI. Deployed on GitHub Pages.*
+*Built with React + TypeScript + Vite + Tailwind + Gemini AI. Deployed on Vercel from the `personal-OS` repo.*
