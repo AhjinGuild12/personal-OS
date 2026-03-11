@@ -1,56 +1,95 @@
-## Date
-2026-03-10
+# Date
 
-## Scope
-Port the validated OS theme system into the actual `personal-OS` Vite repo that backs the live site. The target behavior for this pass was Windows XP as the default desktop theme, a working theme switcher for Neo / XP / Mac OS X, and a centered Aqua dock-first launcher.
+2026-03-11
 
-## Changes Implemented
-- Added theme definitions and runtime theme state in `theme.ts`, `data/themes.ts`, and `components/ThemeContext.tsx`.
-- Updated `App.tsx` to wrap the OS in `ThemeProvider`, keep XP as the default theme, and define the Aqua pinned dock launchers: `Projects`, `Tasks`, `App Store` (`My Apps`), `Browser`, and `Games`.
-- Updated `components/Desktop.tsx` so the desktop background and grid are theme-driven instead of hard-coded Neo styling.
-- Reworked `components/Taskbar.tsx` into a theme-aware shell:
-  - Neo keeps the old start/taskbar layout.
-  - XP gets a blue taskbar, green Start button, and XP-style tab/tray chrome.
-  - Aqua gets a centered floating dock with running indicators, pinned launchers, and transient running items for unpinned windows.
-- Reworked `components/StartMenu.tsx`:
-  - Neo / XP now include a `Change Theme` item in the menu.
-  - Aqua Finder becomes a compact system panel with `My Computer`, `Change Theme`, and `Shut Down`.
-- Updated `components/Window.tsx` and added `components/WindowControls.tsx` so window chrome follows the active theme:
-  - Neo square controls on the right.
-  - XP controls on the right.
-  - Mac traffic lights on the left with centered titles.
+# Scope
 
-## Validation
-- `npx tsc --noEmit` — PASS
-- `npm run build` — PASS
-- `npm run build` emits a Vite chunk-size warning for `dist/assets/index-CXXOG7mf.js` at ~583 kB, but the production build completes successfully.
-- Manual browser QA was not rerun in this repo during this turn.
+Migrate the live `personal-OS` repo from the old Vite SPA shell to an Astro website while preserving the React Personal OS at `/os`. This pass is local-only; nothing has been deployed yet.
 
-## Current Behavior
-- The `personal-OS` repo now contains the XP / Neo / Aqua desktop theme system locally.
-- The app still opens on the terminal-style portfolio landing page first, then reveals the OS after the light-switch interaction.
-- Once inside the OS:
-  - XP is the default theme.
-  - Neo, XP, and Mac OS X can be switched from the menu.
-  - Aqua uses a centered dock launcher instead of a full-width taskbar.
-  - Opening a pinned Aqua app focuses/restores it instead of minimizing it.
+# Changes Implemented
 
-## Known Issues / Risks
-- Live production will not change until these repo changes are committed and pushed from `personal-OS`.
-- The large JS bundle warning remains. It is not currently blocking the build, but it is worth addressing later if performance becomes a concern.
-- There is unrelated local state in the repo (`.claude/`) that should not be included in the deploy commit.
+- Added Astro as the site framework in the live repo and updated project config:
+  - `package.json`
+  - `package-lock.json`
+  - `astro.config.mjs`
+  - `tsconfig.json`
+  - `.gitignore`
+- Added a real Astro site structure with public routes:
+  - `src/pages/index.astro`
+  - `src/pages/about.astro`
+  - `src/pages/projects.astro`
+  - `src/pages/blog/index.astro`
+  - `src/pages/blog/[slug].astro`
+  - `src/pages/contact.astro`
+  - `src/pages/rss.xml.ts`
+  - `src/pages/os.astro`
+- Added the Astro content collection and blog content:
+  - `src/content.config.ts`
+  - `src/content/blog/*.md`
+- Added shared site layout and styling:
+  - `src/layouts/BaseLayout.astro`
+  - `src/styles/global.css`
+- Copied the approved React OS implementation into the Astro app and kept `/os` as the mounted React island:
+  - `src/components/react/*`
+  - `src/context/ThemeContext.tsx`
+  - `src/data/*`
+  - `src/hooks/*`
+  - `src/types.ts`
+  - `src/types/theme.ts`
+  - `src/utils/sounds.ts`
+- Added site-support files:
+  - `public/robots.txt`
+  - `public/llms.txt`
+  - `scripts/validate-themes-local.mjs`
+- Tightened the Astro TypeScript scope to the new `src` app and suppressed inline-script checker noise on the homepage and blog index:
+  - `tsconfig.json`
+  - `src/pages/index.astro`
+  - `src/pages/blog/index.astro`
 
-## Next Steps
-- Stage only the OS theme files from this repo:
-  - `App.tsx`
-  - `components/Desktop.tsx`
-  - `components/StartMenu.tsx`
-  - `components/Taskbar.tsx`
-  - `components/Window.tsx`
-  - `components/ThemeContext.tsx`
-  - `components/WindowControls.tsx`
-  - `data/themes.ts`
-  - `theme.ts`
-  - `HANDOVER.md`
-- Commit and push `main` in `personal-OS`.
-- Verify the live site after Vercel finishes the deployment, specifically the XP default load and the Aqua dock/theme switcher behavior.
+# Validation
+
+- `npm install`
+  - Pass
+  - Astro and site dependencies installed in the live repo
+- `npm run build`
+  - Pass
+  - Static routes generated successfully for `/`, `/about`, `/projects`, `/blog`, `/blog/[slug]`, `/contact`, `/os`, and `/rss.xml`
+  - Sitemap generated successfully
+- `npx astro check`
+  - Pass with 0 errors
+  - Remaining output is hints only (mostly inline script / deprecated API hints)
+- `npm run validate:themes-local`
+  - Pass
+  - Dev and preview both served `/os`
+  - XP default, Neo/XP/Aqua switching, Aqua dock, and taskbar visibility checks all passed
+  - Artifacts written to `/var/folders/1v/4wx5rnp57vd34x4ydcsncy2c0000gn/T/theme-validation-artifacts-VLwwCQ`
+- Local preview
+  - Running at `http://127.0.0.1:4322/`
+  - Verified `200 OK` for `/`, `/blog/`, `/blog/why-i-built-a-retro-os/`, and `/os/`
+
+# Current Behavior
+
+- `personal-OS` is now the single local codebase for the public website and the React OS
+- `/` is a crawlable terminal-style CV homepage with featured writing and a CTA into `/os`
+- `/blog` and `/blog/[slug]` are real static pages with metadata and structured data
+- `/about`, `/projects`, and `/contact` are real public pages
+- `/os` preserves the React desktop OS with XP default, theme switching, and Aqua dock behavior
+- The old root-level Vite app files still exist in the repo but are no longer part of the Astro build path
+
+# Known Issues / Risks
+
+- `npx astro check` still reports hints (not errors) for some inline scripts and deprecated browser APIs; these do not currently block build or preview
+- The old legacy Vite files remain in the repo root and may be worth removing in a cleanup pass once the Astro migration is confirmed live
+- `npm audit` reports vulnerabilities in the dependency tree; not addressed in this pass
+- Untracked local-only state still exists in `.claude/` and should not be committed
+
+# Next Steps
+
+- Review the migrated site locally at:
+  - `http://127.0.0.1:4322/`
+  - `http://127.0.0.1:4322/blog/`
+  - `http://127.0.0.1:4322/blog/why-i-built-a-retro-os/`
+  - `http://127.0.0.1:4322/os/`
+- If approved, stage only the Astro migration files in `personal-OS`, commit them, and push to trigger Vercel
+- After deployment, verify that `janbmedina.com`, `janbmedina.com/blog`, and `janbmedina.com/os` all resolve to the migrated build
+- In a later cleanup pass, delete the unused legacy Vite shell files from the repo root

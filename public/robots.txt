@@ -1,0 +1,30 @@
+# robots.txt for janbmedina.com
+
+User-agent: *
+Allow: /
+Disallow: /os
+
+# AI Bots — Welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemap
+Sitemap: https://janbmedina.com/sitemap-index.xml

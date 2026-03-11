@@ -1,0 +1,41 @@
+# Jan Medina — janbmedina.com
+
+## About
+Jan Medina is an IT Professional and Developer based in Auckland, New Zealand.
+He manages enterprise device fleets, automates IT workflows, and builds iOS and web apps.
+
+## Professional Background
+- Full-time IT System Administrator
+- Specializes in JAMF Pro, Microsoft Intune, Active Directory, Azure AD
+- PowerShell scripting and MDM policy automation
+- Enterprise device fleet management across macOS, Windows, iOS
+
+## Development Skills
+- React, TypeScript, JavaScript, Node.js
+- Swift for iOS development
+- Astro for static site generation
+- Git, Xcode, VS Code
+
+## Projects
+1. **NeoBrutalist Personal OS** — A retro desktop OS experience built with React, featuring 20+ mini apps including a file explorer, calculator, weather app, retro TV player, and more
+2. **Move45** — iOS app for building a daily 45-minute movement habit (available on App Store)
+3. **IWT** — Interval walking trainer for iOS (in progress)
+4. **Lifespan Tracker** — Life perspective visualizer built with React and Node.js (lifespantracker.com)
+5. **CoverCraft** — Cover letter generator website
+
+## Philosophy
+Ship fast. Learn faster. Every project levels me up.
+Simplicity first — elegant code over clever code.
+AI is the multiplier, craft is the foundation.
+
+## Contact
+- GitHub: https://github.com/AhjinGuild12
+- LinkedIn: https://www.linkedin.com/in/jjmd
+- Website: https://janbmedina.com
+
+## Site Structure
+- / — Landing page with intro, skills, featured projects
+- /about — Detailed bio, skills, work philosophy
+- /projects — Full project showcase
+- /contact — Social links and contact info
+- /os — Interactive retro desktop OS experience (React app)

@@ -1,0 +1,443 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+const sortedPosts = posts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Jan Medina's Blog",
+  "description": "Writing about JAMF, Intune, endpoint management, automation, AI tools, and what it's like to build things with them.",
+  "url": "https://janbmedina.com/blog",
+  "author": { "@type": "Person", "name": "Jan Medina" }
+};
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('en-NZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — Jan Medina</title>
+  <meta name="description" content="Writing about JAMF, Intune, endpoint management, automation, AI tools, and the projects I build. By Jan Medina." />
+  <link rel="canonical" href="https://janbmedina.com/blog" />
+  <link rel="icon" type="image/png" href="/profile.png" />
+
+  <meta property="og:title" content="Blog — Jan Medina" />
+  <meta property="og:description" content="Writing about JAMF, Intune, endpoint management, automation, AI tools, and the projects I build." />
+  <meta property="og:image" content="https://janbmedina.com/profile.png" />
+  <meta property="og:url" content="https://janbmedina.com/blog" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Blog — Jan Medina" />
+  <meta name="twitter:description" content="Writing about JAMF, Intune, endpoint management, automation, AI tools, and the projects I build." />
+  <meta name="twitter:image" content="https://janbmedina.com/profile.png" />
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      background-color: #0a0a0a;
+      color: #e0e0e0;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; }
+
+    .container {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .container { padding: 6rem 2rem; }
+    }
+
+    /* Header */
+    .header-prompt {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: #4ade80;
+      margin-bottom: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .header h1 { font-size: 2.25rem; }
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: #888;
+      margin-bottom: 3rem;
+    }
+
+    .header-subtitle a {
+      color: #4ade80;
+      transition: color 0.2s;
+    }
+
+    .header-subtitle a:hover { color: #6ee7a0; }
+
+    .topic-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .topic-pill {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      background: rgba(74, 222, 128, 0.08);
+      color: #4ade80;
+    }
+
+    /* Command */
+    .command {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #4ade80;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Post cards */
+    .posts { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .post-card {
+      display: none;
+      border: 1px solid #222;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .post-card.visible { display: block; }
+
+    .post-card-link {
+      display: block;
+      padding: 1rem 1.25rem;
+      color: #d4d4d4;
+      transition: background 0.15s;
+    }
+
+    .post-card-link:hover { background: #141414; }
+
+    .post-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.375rem;
+    }
+
+    .post-num {
+      color: #555;
+      font-size: 0.8125rem;
+      flex-shrink: 0;
+    }
+
+    .post-title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: #e0e0e0;
+      transition: color 0.2s;
+    }
+
+    .post-card-link:hover .post-title { color: #4ade80; }
+
+    .post-arrow {
+      color: #333;
+      margin-left: auto;
+      flex-shrink: 0;
+      transition: color 0.2s;
+    }
+
+    .post-card-link:hover .post-arrow { color: #4ade80; }
+
+    .post-desc {
+      font-size: 0.8125rem;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+      padding-left: 2.75rem;
+    }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-left: 2.75rem;
+      flex-wrap: wrap;
+    }
+
+    .post-date {
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    .post-tag {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(74, 222, 128, 0.1);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+    }
+
+    .post-tag.category {
+      color: #93c5fd;
+      background: rgba(96, 165, 250, 0.1);
+      border-color: rgba(96, 165, 250, 0.2);
+    }
+
+    /* Typewriter section */
+    .typed-section {
+      display: none;
+      margin-bottom: 2rem;
+    }
+
+    .typed-section.visible { display: block; }
+
+    .typed-output {
+      font-size: 0.875rem;
+      color: #d4d4d4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.7;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.6em;
+      height: 1.15em;
+      background: #4ade80;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Skip button */
+    .skip-btn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 20;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-family: inherit;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #666;
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .skip-btn:hover {
+      color: #4ade80;
+      border-color: #4ade80;
+    }
+
+    .skip-btn.hidden { display: none; }
+
+    /* Empty state */
+    .empty-state {
+      padding: 2rem;
+      border: 1px solid #222;
+      border-radius: 4px;
+      color: #555;
+      text-align: center;
+      font-size: 0.875rem;
+    }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      font-size: 0.875rem;
+      color: #555;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: #4ade80; }
+  </style>
+</head>
+<body>
+  <button class="skip-btn" id="skip-btn">skip &gt;&gt;</button>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-prompt">jan@blog ~ %</div>
+      <h1>Blog</h1>
+      <p class="header-subtitle">
+        Writing about JAMF, Intune, endpoint management, automation, AI tools, and what it's like to build things with them.
+        &middot; <a href="/">Home</a>
+      </p>
+      <div class="topic-pills">
+        <span class="topic-pill">JAMF Pro</span>
+        <span class="topic-pill">Intune</span>
+        <span class="topic-pill">macOS Fleet Management</span>
+        <span class="topic-pill">Automation</span>
+        <span class="topic-pill">App Building</span>
+      </div>
+    </div>
+
+    {sortedPosts.length === 0 ? (
+      <div class="empty-state">No posts yet. Check back soon.</div>
+    ) : (
+      <>
+        {/* Typed intro sections — one per post */}
+        {sortedPosts.map((post, i) => {
+          const num = String(i + 1).padStart(2, '0');
+          const line = `[${num}] ${post.data.title}`;
+          return (
+            <div class="typed-section" data-typed data-fulltext={line}>
+              <div class="typed-output"></div>
+            </div>
+          );
+        })}
+
+        <!-- Post cards (shown after typing) -->
+        <div class="command" id="posts-command" style="display:none">&gt; ls posts/</div>
+        <div class="posts" id="posts-list">
+          {sortedPosts.map((post, i) => {
+            const num = String(i + 1).padStart(2, '0');
+            return (
+              <div class="post-card" data-post>
+                <a href={`/blog/${post.id}/`} class="post-card-link">
+                  <div class="post-title-row">
+                    <span class="post-num">[{num}]</span>
+                    <span class="post-title">{post.data.title}</span>
+                    <span class="post-arrow">&rarr;</span>
+                  </div>
+                  <p class="post-desc">{post.data.description}</p>
+                  <div class="post-meta">
+                    <span class="post-date">{formatDate(post.data.date)}</span>
+                    {post.data.category && (
+                      <span class="post-tag category">{post.data.category}</span>
+                    )}
+                    {post.data.tags.map((tag: string) => (
+                      <span class="post-tag">{tag}</span>
+                    ))}
+                  </div>
+                </a>
+              </div>
+            );
+          })}
+        </div>
+
+        <a href="/" class="back-link" id="back-link" style="display:none">&larr; cd ~</a>
+      </>
+    )}
+  </div>
+
+  <script is:inline>
+    // @ts-nocheck
+    (function() {
+      var typedEls = Array.from(document.querySelectorAll('[data-typed]'));
+      var skipBtn = document.getElementById('skip-btn');
+      var postsCommand = document.getElementById('posts-command');
+      var postCards = Array.from(document.querySelectorAll('[data-post]'));
+      var backLink = document.getElementById('back-link');
+      var stopped = false;
+
+      if (typedEls.length === 0) {
+        skipBtn.classList.add('hidden');
+        return;
+      }
+
+      function showComplete() {
+        stopped = true;
+        typedEls.forEach(function(el) {
+          el.classList.add('visible');
+          var output = el.querySelector('.typed-output');
+          output.textContent = el.getAttribute('data-fulltext') || '';
+          var cur = output.querySelector('.cursor');
+          if (cur) cur.remove();
+        });
+        // Hide typed lines, show real cards
+        typedEls.forEach(function(el) { el.style.display = 'none'; });
+        postsCommand.style.display = '';
+        postCards.forEach(function(c) { c.classList.add('visible'); });
+        backLink.style.display = '';
+        skipBtn.classList.add('hidden');
+      }
+
+      skipBtn.addEventListener('click', showComplete);
+
+      var TARGET_DURATION = 3000;
+
+      function typeEl(el) {
+        return new Promise(function(resolve) {
+          if (stopped) { resolve(); return; }
+          var output = el.querySelector('.typed-output');
+          var fullText = el.getAttribute('data-fulltext') || '';
+          var speed = Math.max(1, Math.floor(TARGET_DURATION / fullText.length));
+
+          el.classList.add('visible');
+          var cursor = document.createElement('span');
+          cursor.className = 'cursor';
+          output.appendChild(cursor);
+
+          var i = 0;
+          function tick() {
+            if (stopped || i >= fullText.length) {
+              if (cursor.parentNode) cursor.remove();
+              resolve();
+              return;
+            }
+            output.insertBefore(document.createTextNode(fullText[i]), cursor);
+            i++;
+            setTimeout(tick, speed);
+          }
+          tick();
+        });
+      }
+
+      Promise.all(typedEls.map(typeEl)).then(function() {
+        if (!stopped) {
+          // Hide typed lines, show real cards
+          typedEls.forEach(function(el) { el.style.display = 'none'; });
+          postsCommand.style.display = '';
+          postCards.forEach(function(c) { c.classList.add('visible'); });
+          backLink.style.display = '';
+          skipBtn.classList.add('hidden');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

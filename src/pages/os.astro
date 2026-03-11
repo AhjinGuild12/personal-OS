@@ -1,0 +1,84 @@
+---
+import '../styles/global.css';
+import App from '../components/react/App';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jan M — NeoBrutalist OS</title>
+  <meta name="description" content="A retro desktop OS experience built by Jan Medina. Explore mini apps, a file explorer, calculator, retro TV, and more — all in the browser." />
+  <link rel="canonical" href="https://janbmedina.com/os" />
+  <link rel="icon" type="image/png" href="/profile.png" />
+
+  <!-- OG -->
+  <meta property="og:title" content="Jan M — NeoBrutalist OS" />
+  <meta property="og:description" content="A retro desktop OS experience built in the browser with React." />
+  <meta property="og:image" content="https://janbmedina.com/profile.png" />
+  <meta property="og:url" content="https://janbmedina.com/os" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Jan M — NeoBrutalist OS" />
+  <meta name="twitter:description" content="A retro desktop OS experience built in the browser with React." />
+  <meta name="twitter:image" content="https://janbmedina.com/profile.png" />
+
+  <!-- Resource Hints -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Fonts -->
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Public+Sans:wght@400;700;900&family=Lexend+Mega:wght@400;700;900&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'"
+  />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Public+Sans:wght@400;700;900&family=Lexend+Mega:wght@400;700;900&display=swap" />
+  </noscript>
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#2456b8" />
+
+  <style>
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #3a6ea5;
+      background-image:
+        radial-gradient(ellipse at 50% 100%, #5a9fd4 0%, #3a6ea5 40%, #245b8e 70%),
+        linear-gradient(180deg, #245b8e 0%, #3a6ea5 30%, #87ceeb 60%, #5a9fd4 100%);
+      color: #000;
+      cursor: default;
+    }
+    /* Astro wraps client:only components in astro-island (display:contents).
+       Ensure nothing between body and the React root adds unexpected height. */
+    astro-island {
+      display: contents;
+    }
+  </style>
+</head>
+<body>
+  <!-- Back to site escape hatch -->
+  <a
+    href="/"
+    id="back-to-site"
+    style="position:fixed;top:12px;right:12px;z-index:99999;padding:6px 14px;background:#000;color:#fdf6e3;border:3px solid #000;font-family:'Public Sans',sans-serif;font-size:12px;font-weight:700;text-decoration:none;box-shadow:2px 2px 0 0 rgba(0,0,0,1);transition:all 0.15s;opacity:0.6;"
+    onmouseenter="this.style.opacity='1';this.style.background='#e07a5f'"
+    onmouseleave="this.style.opacity='0.6';this.style.background='#000'"
+  >
+    &larr; Back to Site
+  </a>
+
+  <!-- Full React OS as client:only island -->
+  <App client:only="react" />
+</body>
+</html>

@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import portfolioData from '../data/portfolioData';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Projects by Jan Medina",
+  "description": "A collection of web apps, iOS apps, and tools built by Jan Medina.",
+  "url": "https://janbmedina.com/projects"
+};
+
+const projects = portfolioData.projects;
+---
+
+<BaseLayout
+  title="Projects — Jan Medina"
+  description="Explore projects by Jan Medina: iOS apps, web apps, and developer tools. From a retro desktop OS to fitness trackers and cover letter generators."
+  canonicalPath="/projects"
+  jsonLd={jsonLd}
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" class="mb-8">
+      <ol class="flex items-center gap-2 text-sm text-neutral-500">
+        <li><a href="/" class="hover:underline">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="font-semibold text-black">Projects</li>
+      </ol>
+    </nav>
+
+    <h1 class="font-heading text-3xl sm:text-4xl font-black mb-4">Projects</h1>
+    <p class="text-neutral-600 mb-12 max-w-2xl">
+      Things I've built — from iOS apps to web experiences. Each project is a lesson in shipping real stuff.
+    </p>
+
+    <div class="space-y-6">
+      {projects.map((project, i) => (
+        <article class="neo-border bg-white p-6 sm:p-8 shadow-neo">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-xs font-mono text-neutral-400">[{String(i + 1).padStart(2, '0')}]</span>
+                <h2 class="font-heading text-lg font-bold">{project.name}</h2>
+                {project.status === 'in-progress' && (
+                  <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded-full bg-yellow/20 text-yellow border border-yellow/30">
+                    In Progress
+                  </span>
+                )}
+              </div>
+              <p class="text-neutral-600 leading-relaxed">{project.summary}</p>
+            </div>
+          </div>
+          {project.links && project.links.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-4">
+              {project.links.map((link) => (
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-bold text-green hover:underline"
+                >
+                  {link.label} &rarr;
+                </a>
+              ))}
+            </div>
+          )}
+          {project.cta && (
+            <p class="mt-4 text-sm italic text-green">{project.cta}</p>
+          )}
+        </article>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

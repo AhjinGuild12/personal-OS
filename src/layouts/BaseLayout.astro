@@ -1,0 +1,153 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+  ogImage?: string;
+  ogType?: string;
+  jsonLd?: Record<string, unknown>;
+  bodyClass?: string;
+  noIndex?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonicalPath = '',
+  ogImage = '/profile.png',
+  ogType = 'website',
+  jsonLd,
+  bodyClass = '',
+  noIndex = false,
+} = Astro.props;
+
+const siteUrl = 'https://janbmedina.com';
+const canonicalUrl = `${siteUrl}${canonicalPath}`;
+const ogImageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- Primary Meta -->
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="author" content="Jan Medina" />
+  {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+  <!-- Canonical -->
+  <link rel="canonical" href={canonicalUrl} />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/profile.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:site_name" content="Jan Medina" />
+  <meta property="og:locale" content="en_NZ" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImageUrl} />
+
+  <!-- Resource Hints -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Fonts (async loading with fallback) -->
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Public+Sans:wght@400;700;900&family=Lexend+Mega:wght@400;700;900&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'"
+  />
+  <noscript>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Public+Sans:wght@400;700;900&family=Lexend+Mega:wght@400;700;900&display=swap"
+    />
+  </noscript>
+
+  <!-- JSON-LD Structured Data -->
+  {jsonLd && (
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  )}
+
+  <!-- RSS Feed -->
+  <link rel="alternate" type="application/rss+xml" title="Jan Medina — Blog" href="/rss.xml" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#fdf6e3" />
+</head>
+<body class={bodyClass}>
+  <slot name="before-nav" />
+
+  <!-- Navigation -->
+  <nav class="neo-border border-t-0 border-l-0 border-r-0 bg-cream sticky top-0 z-50" aria-label="Main navigation">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="/" class="font-heading font-bold text-lg tracking-tight hover:text-rust transition-colors">
+          Jan M
+        </a>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <a href="/about" class="px-3 py-2 text-sm font-semibold hover:bg-black hover:text-cream transition-colors">About</a>
+          <a href="/projects" class="px-3 py-2 text-sm font-semibold hover:bg-black hover:text-cream transition-colors">Projects</a>
+          <a href="/blog" class="px-3 py-2 text-sm font-semibold hover:bg-black hover:text-cream transition-colors">Blog</a>
+          <a href="/contact" class="px-3 py-2 text-sm font-semibold hover:bg-black hover:text-cream transition-colors">Contact</a>
+          <a
+            href="/os"
+            class="ml-2 px-4 py-2 text-sm font-bold bg-black text-cream neo-border shadow-neo-sm neo-transition hover:bg-rust"
+          >
+            Boot OS
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <slot />
+  </main>
+
+  <!-- Footer -->
+  <footer class="neo-border border-b-0 border-l-0 border-r-0 bg-black text-cream" role="contentinfo">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <p class="font-heading font-bold text-lg">Jan Medina</p>
+          <p class="text-sm text-neutral-400 mt-1">IT Professional &amp; Developer &mdash; Auckland, NZ</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/AhjinGuild12" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="text-neutral-400 hover:text-cream transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23a11.509 11.509 0 013.003-.404c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/jjmd" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="text-neutral-400 hover:text-cream transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </a>
+          <a href="mailto:jantheexplorer.anyhow103@passinbox.com" aria-label="Email" class="text-neutral-400 hover:text-cream transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="mt-8 pt-6 border-t border-neutral-800 text-center text-xs text-neutral-500">
+        <p>&copy; {new Date().getFullYear()} Jan Medina. Built with Astro &amp; React.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

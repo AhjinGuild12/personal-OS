@@ -1,0 +1,786 @@
+---
+import { getCollection } from 'astro:content';
+import portfolioData from '../data/portfolioData';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+const sortedPosts = posts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+const latestWriting = [
+  ...sortedPosts.filter((post) => post.data.featured),
+  ...sortedPosts.filter((post) => !post.data.featured),
+].slice(0, 3);
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('en-NZ', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Jan Medina",
+  "url": "https://janbmedina.com",
+  "image": "https://janbmedina.com/profile.png",
+  "jobTitle": "IT Professional & Developer",
+  "worksFor": {
+    "@type": "Organization",
+    "name": "Self-Employed"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Auckland",
+    "addressCountry": "NZ"
+  },
+  "sameAs": [
+    "https://github.com/AhjinGuild12",
+    "https://www.linkedin.com/in/jjmd"
+  ],
+  "knowsAbout": ["IT Administration", "JAMF Pro", "Microsoft Intune", "React", "TypeScript", "Swift", "iOS Development"]
+};
+
+const PROJECT_LABELS: Record<string, string> = {
+  'neobrutalist-os': 'neobrutalist-os     \u2014 This retro desktop you\u2019re looking at',
+  'move45': 'move45              \u2014 iOS app for daily movement habits',
+  'iwt': 'iwt                 \u2014 Interval walking trainer (iOS)',
+  'lifespan-tracker': 'lifespan-tracker    \u2014 Life perspective visualizer (React + Node.js)',
+  'covercraft': 'covercraft          \u2014 Cover letter generator website',
+};
+
+const sections = portfolioData.sections;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jan Medina — IT Professional & Developer | Auckland, NZ</title>
+  <meta name="description" content="Hi, I'm Jan Medina — an IT Professional and developer based in Auckland, NZ. I manage enterprise device fleets, automate IT workflows, and build apps." />
+  <link rel="canonical" href="https://janbmedina.com" />
+  <link rel="icon" type="image/png" href="/profile.png" />
+
+  <!-- OG -->
+  <meta property="og:title" content="Jan Medina — IT Professional & Developer" />
+  <meta property="og:description" content="IT Professional and developer based in Auckland, NZ. I manage enterprise device fleets, automate IT workflows, and build apps." />
+  <meta property="og:image" content="https://janbmedina.com/profile.png" />
+  <meta property="og:url" content="https://janbmedina.com" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Jan Medina — IT Professional & Developer" />
+  <meta name="twitter:description" content="IT Professional and developer based in Auckland, NZ." />
+  <meta name="twitter:image" content="https://janbmedina.com/profile.png" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      background-color: #0a0a0a;
+      color: #e0e0e0;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; }
+
+    .container {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .container { padding: 6rem 2rem; }
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .header-prompt {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: #4ade80;
+      margin-bottom: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .header h1 { font-size: 2.25rem; }
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: #888;
+    }
+
+    .header-subtitle a {
+      color: #888;
+      transition: color 0.2s;
+    }
+
+    .header-subtitle a:hover { color: #4ade80; }
+
+    .profile-pic {
+      width: 5rem;
+      height: 5rem;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #333;
+      flex-shrink: 0;
+    }
+
+    /* Sections */
+    .sections { display: flex; flex-direction: column; gap: 2.5rem; }
+
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    .command {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #4ade80;
+      margin-bottom: 0.5rem;
+    }
+
+    .output {
+      font-size: 0.875rem;
+      color: #d4d4d4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.7;
+    }
+
+    /* Terminal cursor */
+    .cursor {
+      display: inline-block;
+      width: 0.6em;
+      height: 1.15em;
+      background: #4ade80;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Project cards */
+    .projects-section, .links-section { display: none; }
+    .projects-section.visible, .links-section.visible { display: block; }
+
+    .project-card {
+      border: 1px solid #222;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+    }
+
+    .project-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      color: #d4d4d4;
+      font-family: inherit;
+      font-size: 0.8125rem;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .project-card-header:hover { background: #141414; }
+
+    .project-card-chevron {
+      color: #555;
+      font-size: 0.75rem;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+
+    .project-card-chevron.expanded { transform: rotate(90deg); }
+
+    .project-dropdown {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease;
+    }
+
+    .project-dropdown.open { max-height: 12rem; }
+
+    .project-dropdown-inner {
+      padding: 0.75rem 1rem 1rem;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .project-summary {
+      font-size: 0.8125rem;
+      color: #999;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .project-badge {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(234, 179, 8, 0.15);
+      color: #eab308;
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      margin-bottom: 0.5rem;
+    }
+
+    .project-link {
+      display: inline-block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #4ade80;
+      margin-right: 0.75rem;
+      transition: opacity 0.15s;
+    }
+
+    .project-link:hover { opacity: 0.8; }
+
+    /* Writing section */
+    .writing-section {
+      margin-top: 4rem;
+    }
+
+    .writing-intro {
+      font-size: 0.875rem;
+      color: #999;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .writing-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .writing-card {
+      border: 1px solid #222;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .writing-card-link {
+      display: block;
+      padding: 1rem;
+      color: #d4d4d4;
+      transition: background 0.15s;
+    }
+
+    .writing-card-link:hover { background: #141414; }
+
+    .writing-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.375rem;
+    }
+
+    .writing-num {
+      color: #555;
+      font-size: 0.8125rem;
+      flex-shrink: 0;
+    }
+
+    .writing-title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: #e0e0e0;
+      transition: color 0.2s;
+    }
+
+    .writing-card-link:hover .writing-title { color: #4ade80; }
+
+    .writing-arrow {
+      color: #333;
+      margin-left: auto;
+      flex-shrink: 0;
+      transition: color 0.2s;
+    }
+
+    .writing-card-link:hover .writing-arrow { color: #4ade80; }
+
+    .writing-desc {
+      font-size: 0.8125rem;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 0.625rem;
+      padding-left: 2.75rem;
+    }
+
+    .writing-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding-left: 2.75rem;
+    }
+
+    .writing-date {
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    .writing-chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      background: rgba(74, 222, 128, 0.1);
+      color: #4ade80;
+    }
+
+    .writing-chip.category {
+      border-color: rgba(96, 165, 250, 0.2);
+      background: rgba(96, 165, 250, 0.1);
+      color: #93c5fd;
+    }
+
+    .writing-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #4ade80;
+      transition: opacity 0.15s;
+    }
+
+    .writing-cta:hover { opacity: 0.8; }
+
+    /* Links section */
+    .links-section { margin-top: 4rem; }
+
+    .links-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #888;
+      transition: color 0.2s;
+    }
+
+    .link-item:hover { color: #4ade80; }
+
+    .link-item svg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+
+    /* Skip button */
+    .skip-btn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 20;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-family: inherit;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #666;
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .skip-btn:hover {
+      color: #4ade80;
+      border-color: #4ade80;
+    }
+
+    .skip-btn.hidden { display: none; }
+
+    /* Light switch */
+    .light-switch-wrap {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(-6px);
+      animation: switch-fade 0.6s ease forwards;
+    }
+
+    .light-switch-wrap.visible { display: flex; }
+
+    @keyframes switch-fade {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .light-switch-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      outline: none;
+      perspective: 200px;
+    }
+
+    .light-switch-plate {
+      position: relative;
+      width: 60px;
+      height: 94px;
+      background: linear-gradient(180deg, #d4d0cb 0%, #c8c4bf 50%, #bab6b1 100%);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        inset 0 -1px 0 rgba(0,0,0,0.05),
+        0 2px 8px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(0,0,0,0.1);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .light-switch-button:hover .light-switch-plate {
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.6),
+        inset 0 -1px 0 rgba(0,0,0,0.08),
+        0 2px 12px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(0,0,0,0.12),
+        0 0 12px rgba(74,222,128,0.15);
+    }
+
+    .light-switch-screw {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #999 0%, #bbb 100%);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .light-switch-screw::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 1px;
+      background: rgba(0,0,0,0.3);
+      transform: translate(-50%, -50%) rotate(-30deg);
+    }
+
+    .light-switch-toggle-slot {
+      width: 20px;
+      height: 34px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 3px 2px;
+      perspective: 180px;
+    }
+
+    .light-switch-toggle {
+      width: 16px;
+      height: 28px;
+      background: linear-gradient(180deg, #e0dcd7 0%, #c8c4bf 40%, #d4d0cb 100%);
+      border-radius: 3px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.8),
+        inset 0 -1px 0 rgba(0,0,0,0.15),
+        0 2px 4px rgba(0,0,0,0.3);
+      position: relative;
+      transform-origin: center bottom;
+      transition: transform 0.15s ease-in-out;
+    }
+
+    .light-switch-toggle.is-on {
+      transform: rotateX(20deg);
+      transform-origin: center top;
+      box-shadow:
+        inset 0 1px 0 rgba(0,0,0,0.15),
+        inset 0 -1px 0 rgba(255,255,255,0.5);
+    }
+
+    .light-switch-toggle::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #999;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+      bottom: 6px;
+    }
+
+    .light-switch-toggle.is-on::after {
+      bottom: auto;
+      top: 6px;
+    }
+
+    .light-switch-hint {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip button -->
+  <button class="skip-btn" id="skip-btn">skip &gt;&gt;</button>
+
+  <!-- Light switch (hidden until typing complete) -->
+  <div class="light-switch-wrap" id="light-switch">
+    <button class="light-switch-button" id="light-switch-btn" aria-label="Enter OS">
+      <div class="light-switch-plate">
+        <div class="light-switch-screw"></div>
+        <div class="light-switch-toggle-slot">
+          <div class="light-switch-toggle" id="light-switch-toggle"></div>
+        </div>
+        <div class="light-switch-screw"></div>
+      </div>
+    </button>
+    <p class="light-switch-hint">Flip to enter</p>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="header-prompt">jan@portfolio ~ %</div>
+        <h1>Jan Medina</h1>
+        <p class="header-subtitle">
+          IT Professional &middot; App Builder &middot;
+          <a href="https://www.google.com/maps/place/Auckland,+New+Zealand" target="_blank" rel="noopener noreferrer">Auckland, NZ</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Typed Sections -->
+    <div class="sections">
+      {sections.map(section => (
+        <div class="section" data-section={section.id} data-speed={section.speed || 25} data-pause={section.pauseAfter || 400}>
+          <div class="command">&gt; {section.command.replace('> ', '')}</div>
+          <div class="output" data-fulltext={section.text}></div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Projects (shown after typing) -->
+    <div class="projects-section" id="projects-section">
+      <div class="command">&gt; ls projects/</div>
+      {portfolioData.projects.map((project, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        const label = PROJECT_LABELS[project.id] || project.name;
+        return (
+          <div class="project-card">
+            <button class="project-card-header" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='false'?'true':'false'); this.querySelector('.project-card-chevron').classList.toggle('expanded'); this.parentElement.querySelector('.project-dropdown').classList.toggle('open');">
+              <span>[{num}] {label}</span>
+              <span class="project-card-chevron">&#9656;</span>
+            </button>
+            <div class="project-dropdown">
+              <div class="project-dropdown-inner">
+                <p class="project-summary">{project.summary}</p>
+                {project.status === 'in-progress' && <span class="project-badge">In Progress</span>}
+                {project.links?.map(link => (
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" class="project-link">{link.label} &rarr;</a>
+                ))}
+                {project.cta && <p class="project-summary">{project.cta}</p>}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    <!-- Latest Writing -->
+    {latestWriting.length > 0 && (
+      <div class="writing-section">
+        <div class="command">&gt; ls blog/</div>
+        <p class="writing-intro">
+          Writing about JAMF, Intune, endpoint management, automation, and the side projects I build along the way.
+        </p>
+
+        <div class="writing-list">
+          {latestWriting.map((post, i) => {
+            const num = String(i + 1).padStart(2, '0');
+            return (
+              <article class="writing-card">
+                <a href={`/blog/${post.id}/`} class="writing-card-link">
+                  <div class="writing-title-row">
+                    <span class="writing-num">[{num}]</span>
+                    <span class="writing-title">{post.data.title}</span>
+                    <span class="writing-arrow">&rarr;</span>
+                  </div>
+                  <p class="writing-desc">{post.data.description}</p>
+                  <div class="writing-meta">
+                    <span class="writing-date">{formatDate(post.data.date)}</span>
+                    {post.data.category && <span class="writing-chip category">{post.data.category}</span>}
+                    {post.data.tags.slice(0, 2).map((tag) => (
+                      <span class="writing-chip">{tag}</span>
+                    ))}
+                  </div>
+                </a>
+              </article>
+            );
+          })}
+        </div>
+
+        <a href="/blog" class="writing-cta">View all posts &rarr;</a>
+      </div>
+    )}
+
+    <!-- Links (shown after typing) -->
+    <div class="links-section" id="links-section">
+      <div class="command">&gt; ls links/</div>
+      <div class="links-grid">
+        {portfolioData.socialLinks.map(link => (
+          <a href={link.url} target="_blank" rel="noopener noreferrer" class="link-item">
+            {link.icon === 'github' && <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>}
+            {link.icon === 'linkedin' && <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>}
+            {link.icon === 'email' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>}
+            {link.icon === 'website' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>}
+            {link.label}
+          </a>
+        ))}
+        <a href="/blog" class="link-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Blog
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    // @ts-nocheck
+    (function() {
+      const sectionEls = Array.from(document.querySelectorAll('.section')).filter(
+        function(el) { return el.getAttribute('data-section') !== 'projects'; }
+      );
+      const skipBtn = document.getElementById('skip-btn');
+      const lightSwitch = document.getElementById('light-switch');
+      const lightSwitchBtn = document.getElementById('light-switch-btn');
+      const lightSwitchToggle = document.getElementById('light-switch-toggle');
+      const projectsSection = document.getElementById('projects-section');
+      const linksSection = document.getElementById('links-section');
+      let stopped = false;
+
+      function showComplete() {
+        stopped = true;
+        sectionEls.forEach(function(el) {
+          el.classList.add('visible');
+          const output = el.querySelector('.output');
+          if (output) {
+            output.textContent = output.getAttribute('data-fulltext') || '';
+            var cur = output.querySelector('.cursor');
+            if (cur) cur.remove();
+          }
+        });
+        projectsSection.classList.add('visible');
+        linksSection.classList.add('visible');
+        skipBtn.classList.add('hidden');
+        lightSwitch.classList.add('visible');
+      }
+
+      skipBtn.addEventListener('click', showComplete);
+
+      lightSwitchBtn.addEventListener('click', function() {
+        if (lightSwitchToggle.classList.contains('is-on')) return;
+        lightSwitchToggle.classList.add('is-on');
+        setTimeout(function() { window.location.href = '/os'; }, 200);
+      });
+
+      // Calculate speed per section so all finish at the same target duration
+      var TARGET_DURATION = 3000; // 3 seconds total for all sections
+
+      // Find the longest section to set the baseline
+      var maxLen = 0;
+      sectionEls.forEach(function(el) {
+        var len = (el.querySelector('.output').getAttribute('data-fulltext') || '').length;
+        if (len > maxLen) maxLen = len;
+      });
+
+      // Each section gets a per-char delay so it finishes in TARGET_DURATION
+      function typeSection(el) {
+        return new Promise(function(resolve) {
+          if (stopped) { resolve(); return; }
+          var output = el.querySelector('.output');
+          var fullText = output.getAttribute('data-fulltext') || '';
+          var speed = Math.max(1, Math.floor(TARGET_DURATION / fullText.length));
+
+          el.classList.add('visible');
+          var cursor = document.createElement('span');
+          cursor.className = 'cursor';
+          output.appendChild(cursor);
+
+          var i = 0;
+          function tick() {
+            if (stopped || i >= fullText.length) {
+              if (cursor.parentNode) cursor.remove();
+              resolve();
+              return;
+            }
+            output.insertBefore(document.createTextNode(fullText[i]), cursor);
+            i++;
+            setTimeout(tick, speed);
+          }
+          tick();
+        });
+      }
+
+      // Run all sections in parallel
+      Promise.all(sectionEls.map(typeSection)).then(function() {
+        if (!stopped) {
+          projectsSection.classList.add('visible');
+          linksSection.classList.add('visible');
+          skipBtn.classList.add('hidden');
+          lightSwitch.classList.add('visible');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
