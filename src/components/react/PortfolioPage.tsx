@@ -206,8 +206,10 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({ onEnter }) => {
             </p>
           </div>
           <img
-            src="/profile.png"
+            src="/profile-avatar.webp"
             alt="Jan Medina"
+            width={100}
+            height={100}
             className="profile-pic profile-pic-appear"
           />
         </div>

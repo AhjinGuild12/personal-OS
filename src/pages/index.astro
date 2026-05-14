@@ -24,7 +24,7 @@ const jsonLd = {
   "@type": "Person",
   "name": "Jan Medina",
   "url": "https://janbmedina.com",
-  "image": "https://janbmedina.com/profile.png",
+  "image": "https://janbmedina.com/og-image.jpg",
   "jobTitle": "IT Professional & Developer",
   "worksFor": {
     "@type": "Organization",
@@ -50,7 +50,7 @@ const PROJECT_LABELS: Record<string, string> = {
   'covercraft': 'covercraft          \u2014 Cover letter generator website',
 };
 
-const sections = portfolioData.sections;
+const sections = portfolioData.sections.filter((section) => section.id !== 'projects');
 ---
 
 <!DOCTYPE html>
@@ -61,12 +61,13 @@ const sections = portfolioData.sections;
   <title>Jan Medina — IT Professional & Developer | Auckland, NZ</title>
   <meta name="description" content="Hi, I'm Jan Medina — an IT Professional and developer based in Auckland, NZ. I manage enterprise device fleets, automate IT workflows, and build apps." />
   <link rel="canonical" href="https://janbmedina.com" />
-  <link rel="icon" type="image/png" href="/profile.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <!-- OG -->
   <meta property="og:title" content="Jan Medina — IT Professional & Developer" />
   <meta property="og:description" content="IT Professional and developer based in Auckland, NZ. I manage enterprise device fleets, automate IT workflows, and build apps." />
-  <meta property="og:image" content="https://janbmedina.com/profile.png" />
+  <meta property="og:image" content="https://janbmedina.com/og-image.jpg" />
   <meta property="og:url" content="https://janbmedina.com" />
   <meta property="og:type" content="website" />
 
@@ -74,10 +75,11 @@ const sections = portfolioData.sections;
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Jan Medina — IT Professional & Developer" />
   <meta name="twitter:description" content="IT Professional and developer based in Auckland, NZ." />
-  <meta name="twitter:image" content="https://janbmedina.com/profile.png" />
+  <meta name="twitter:image" content="https://janbmedina.com/og-image.jpg" />
 
   <!-- JSON-LD -->
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script is:inline>document.documentElement.classList.add('js');</script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -154,8 +156,10 @@ const sections = portfolioData.sections;
     /* Sections */
     .sections { display: flex; flex-direction: column; gap: 2.5rem; }
 
-    .section { display: none; }
-    .section.visible { display: block; }
+    .section {
+      display: block;
+      opacity: 1;
+    }
 
     .command {
       font-size: 0.875rem;
@@ -165,11 +169,35 @@ const sections = portfolioData.sections;
     }
 
     .output {
+      position: relative;
       font-size: 0.875rem;
       color: #d4d4d4;
       white-space: pre-wrap;
       word-break: break-word;
       line-height: 1.7;
+    }
+
+    .output-full {
+      display: block;
+      white-space: pre-wrap;
+    }
+
+    .typed-layer {
+      display: none;
+    }
+
+    .js .output.is-typing .output-full {
+      color: transparent;
+    }
+
+    .js .output.is-typing .typed-layer {
+      display: block;
+      position: absolute;
+      inset: 0;
+      color: #d4d4d4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      pointer-events: none;
     }
 
     /* Terminal cursor */
@@ -187,8 +215,19 @@ const sections = portfolioData.sections;
     }
 
     /* Project cards */
-    .projects-section, .links-section { display: none; }
-    .projects-section.visible, .links-section.visible { display: block; }
+    .projects-section, .links-section {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(0.25rem);
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+    }
+
+    .projects-section.visible, .links-section.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition-delay: 0s;
+    }
 
     .project-card {
       border: 1px solid #222;
@@ -604,7 +643,10 @@ const sections = portfolioData.sections;
       {sections.map(section => (
         <div class="section" data-section={section.id} data-speed={section.speed || 25} data-pause={section.pauseAfter || 400}>
           <div class="command">&gt; {section.command.replace('> ', '')}</div>
-          <div class="output" data-fulltext={section.text}></div>
+          <div class="output" data-fulltext={section.text} aria-label={section.text}>
+            <span class="output-full" aria-hidden="true">{section.text}</span>
+            <span class="typed-layer" aria-hidden="true"></span>
+          </div>
         </div>
       ))}
     </div>
@@ -714,9 +756,9 @@ const sections = portfolioData.sections;
           el.classList.add('visible');
           const output = el.querySelector('.output');
           if (output) {
-            output.textContent = output.getAttribute('data-fulltext') || '';
-            var cur = output.querySelector('.cursor');
-            if (cur) cur.remove();
+            var typedLayer = output.querySelector('.typed-layer');
+            if (typedLayer) typedLayer.textContent = '';
+            output.classList.remove('is-typing');
           }
         });
         projectsSection.classList.add('visible');
@@ -749,21 +791,25 @@ const sections = portfolioData.sections;
           if (stopped) { resolve(); return; }
           var output = el.querySelector('.output');
           var fullText = output.getAttribute('data-fulltext') || '';
+          var typedLayer = output.querySelector('.typed-layer');
           var speed = Math.max(1, Math.floor(TARGET_DURATION / fullText.length));
 
           el.classList.add('visible');
+          output.classList.add('is-typing');
           var cursor = document.createElement('span');
           cursor.className = 'cursor';
-          output.appendChild(cursor);
+          typedLayer.appendChild(cursor);
 
           var i = 0;
           function tick() {
             if (stopped || i >= fullText.length) {
               if (cursor.parentNode) cursor.remove();
+              if (typedLayer) typedLayer.textContent = '';
+              output.classList.remove('is-typing');
               resolve();
               return;
             }
-            output.insertBefore(document.createTextNode(fullText[i]), cursor);
+            typedLayer.insertBefore(document.createTextNode(fullText[i]), cursor);
             i++;
             setTimeout(tick, speed);
           }
