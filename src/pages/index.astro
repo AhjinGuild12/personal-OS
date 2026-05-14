@@ -117,7 +117,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
       font-size: 0.75rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #555;
+      color: #888;
       margin-bottom: 0.75rem;
     }
 
@@ -255,7 +255,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
     .project-card-header:hover { background: #141414; }
 
     .project-card-chevron {
-      color: #555;
+      color: #888;
       font-size: 0.75rem;
       transition: transform 0.2s;
       display: inline-block;
@@ -348,7 +348,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
     }
 
     .writing-num {
-      color: #555;
+      color: #888;
       font-size: 0.8125rem;
       flex-shrink: 0;
     }
@@ -389,7 +389,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
 
     .writing-date {
       font-size: 0.75rem;
-      color: #555;
+      color: #888;
     }
 
     .writing-chip {
@@ -456,7 +456,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
       font-family: inherit;
       border: 1px solid #333;
       border-radius: 4px;
-      color: #666;
+      color: #888;
       background: transparent;
       cursor: pointer;
       transition: color 0.2s, border-color 0.2s;
@@ -603,7 +603,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
     .light-switch-hint {
       margin-top: 0.5rem;
       font-size: 0.75rem;
-      color: #555;
+      color: #888;
     }
   </style>
 </head>
@@ -625,7 +625,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
     <p class="light-switch-hint">Flip to enter</p>
   </div>
 
-  <div class="container">
+  <main class="container" id="main-content">
     <!-- Header -->
     <div class="header">
       <div>
@@ -643,8 +643,8 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
       {sections.map(section => (
         <div class="section" data-section={section.id} data-speed={section.speed || 25} data-pause={section.pauseAfter || 400}>
           <div class="command">&gt; {section.command.replace('> ', '')}</div>
-          <div class="output" data-fulltext={section.text} aria-label={section.text}>
-            <span class="output-full" aria-hidden="true">{section.text}</span>
+          <div class="output" data-fulltext={section.text}>
+            <span class="output-full">{section.text}</span>
             <span class="typed-layer" aria-hidden="true"></span>
           </div>
         </div>
@@ -734,7 +734,7 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
         </a>
       </div>
     </div>
-  </div>
+  </main>
 
   <script is:inline>
     // @ts-nocheck
