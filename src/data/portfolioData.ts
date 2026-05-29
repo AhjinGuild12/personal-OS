@@ -16,6 +16,8 @@ export interface ProjectDetail {
   id: string;
   name: string;
   summary: string;
+  oneSentence?: string;
+  techStack?: string[];
   status?: 'in-progress';
   links?: { label: string; url: string }[];
   cta?: string;
@@ -87,6 +89,9 @@ AI is the multiplier, craft is the foundation.`,
       name: 'neobrutalist-os',
       summary:
         'A retro desktop OS experience built with React. Explore the mini apps, play retro TV, and more.',
+      oneSentence:
+        'A fully interactive retro desktop operating system built in React that lets visitors explore mini-apps, play a CRT TV, and experience a complete browser-based OS.',
+      techStack: ['React', 'TypeScript', 'Tailwind', 'Vite', 'Astro'],
       cta: '\u2191 Flip the switch to enter \u2192',
     },
     {
@@ -94,6 +99,9 @@ AI is the multiplier, craft is the foundation.`,
       name: 'move45',
       summary:
         'An iOS app to build a daily 45-minute movement habit. Track streaks, set reminders, stay consistent.',
+      oneSentence:
+        'An iOS app that helps you build a consistent daily 45-minute movement habit with streaks, reminders, and simple progress tracking.',
+      techStack: ['Swift', 'SwiftUI', 'iOS'],
       links: [
         {
           label: 'App Store',
@@ -106,6 +114,9 @@ AI is the multiplier, craft is the foundation.`,
       name: 'iwt',
       summary:
         'An interval walking trainer for iOS \u2014 alternating pace sessions to boost cardio fitness.',
+      oneSentence:
+        'A work-in-progress iOS interval walking trainer that alternates between paces to improve cardio fitness through structured sessions.',
+      techStack: ['Swift', 'SwiftUI', 'iOS'],
       status: 'in-progress',
     },
     {
@@ -113,6 +124,9 @@ AI is the multiplier, craft is the foundation.`,
       name: 'lifespan-tracker',
       summary:
         'A life perspective visualizer that maps your life in weeks. See how far you\u2019ve come and what lies ahead.',
+      oneSentence:
+        'A web tool that visualizes your entire life in weeks so you can see how much time has passed and what remains.',
+      techStack: ['React', 'Node.js', 'TypeScript'],
       links: [
         {
           label: 'Website',
@@ -125,6 +139,9 @@ AI is the multiplier, craft is the foundation.`,
       name: 'covercraft',
       summary:
         'A cover letter generator that crafts tailored letters from your resume and the job description.',
+      oneSentence:
+        'A web app that generates tailored, professional cover letters by combining your resume with the specific job description using AI.',
+      techStack: ['Astro', 'React', 'TypeScript', 'AI'],
     },
   ],
 };
