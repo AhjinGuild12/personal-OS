@@ -2,7 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import portfolioData from '../data/portfolioData';
 
-const projects = portfolioData.projects;
+// Focused projects only (removed iwt and covercraft per latest direction, matching the visual density and focus of the provided inspiration screenshots)
+const focusedProjectIds = ['neobrutalist-os', 'move45', 'lifespan-tracker'];
+const projects = portfolioData.projects.filter(p => focusedProjectIds.includes(p.id));
 
 // Taste-skill guided dials for this editorial portfolio gallery on neobrutalist cream site:
 // VARIANCE 6 (measured asymmetry within thick borders), MOTION 3 (subtle lifts only), DENSITY 4 (breathing room)
@@ -11,14 +13,14 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "I like to build software — Jan Medina",
-  "description": "Five projects with custom visuals and one-sentence descriptions. Turning problems into shipped software.",
+  "description": "Three focused projects with custom visuals and one-sentence descriptions. Turning problems into shipped software.",
   "url": "https://janbmedina.com/i-build"
 };
 ---
 
 <BaseLayout
   title="I like to build software — Jan Medina"
-  description="Five projects with custom visuals and one-sentence descriptions. Turning problems into shipped software."
+  description="Three focused projects with custom visuals and one-sentence descriptions. Turning problems into shipped software."
   canonicalPath="/i-build"
   jsonLd={jsonLd}
 >
@@ -38,7 +40,7 @@ const jsonLd = {
       <div class="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500 mb-2">Projects</div>
       <h1 class="font-heading text-5xl sm:text-6xl font-black tracking-tighter">I like to build software</h1>
       <p class="mt-4 text-xl text-neutral-600 max-w-[42ch]">
-        Turning real problems into shipped work. Five projects, one sentence each.
+        Turning real problems into shipped work. Three focused projects, one sentence each.
       </p>
     </div>
 
@@ -120,7 +122,7 @@ const jsonLd = {
     </div>
 
     <div class="mt-16 border-t border-black/10 pt-8 text-sm text-neutral-500">
-      All projects built to solve real problems I actually had. No side quests.
+      Focused selection of projects built to solve real problems I actually had.
     </div>
   </div>
 </BaseLayout>
