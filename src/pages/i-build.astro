@@ -1,128 +1,283 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import portfolioData from '../data/portfolioData';
+import type { ProjectDetail } from '../data/portfolioData';
 
-// Focused projects only (removed iwt and covercraft per latest direction, matching the visual density and focus of the provided inspiration screenshots)
-const focusedProjectIds = ['neobrutalist-os', 'move45', 'lifespan-tracker'];
-const projects = portfolioData.projects.filter(p => focusedProjectIds.includes(p.id));
+interface ShowcaseImage {
+  src: string;
+  width: number;
+  height: number;
+  orientation: 'landscape' | 'portrait';
+  alt: string;
+}
 
-// Taste-skill guided dials for this editorial portfolio gallery on neobrutalist cream site:
-// VARIANCE 6 (measured asymmetry within thick borders), MOTION 3 (subtle lifts only), DENSITY 4 (breathing room)
+interface ShowcaseProject {
+  project: ProjectDetail;
+  image: ShowcaseImage;
+  description: string;
+  techStack: string[];
+  primaryLink: { label: string; url: string } | null;
+  fallbackNote: string;
+  articleClass: string;
+  mediaClass: string;
+  contentClass: string;
+}
+
+const showcaseImages: Record<string, ShowcaseImage> = {
+  'neobrutalist-os': {
+    src: '/images/projects/neobrutalist-os-hero.jpg',
+    width: 1408,
+    height: 768,
+    orientation: 'landscape',
+    alt: 'Generated screenshot-style visual for the neobrutalist-os retro desktop',
+  },
+  move45: {
+    src: '/images/projects/move45-hero.jpg',
+    width: 896,
+    height: 1280,
+    orientation: 'portrait',
+    alt: 'Generated screenshot-style visual for the move45 iOS app',
+  },
+  iwt: {
+    src: '/images/projects/iwt-hero.jpg',
+    width: 896,
+    height: 1280,
+    orientation: 'portrait',
+    alt: 'Generated screenshot-style visual for the iwt interval walking trainer',
+  },
+  'lifespan-tracker': {
+    src: '/images/projects/lifespan-tracker-hero.jpg',
+    width: 1408,
+    height: 768,
+    orientation: 'landscape',
+    alt: 'Generated screenshot-style visual for the lifespan-tracker dashboard',
+  },
+  covercraft: {
+    src: '/images/projects/covercraft-hero.jpg',
+    width: 1408,
+    height: 768,
+    orientation: 'landscape',
+    alt: 'Generated screenshot-style visual for the covercraft web app',
+  },
+};
+
+const cardLayouts = [
+  {
+    articleClass: 'lg:col-span-6 lg:grid lg:grid-cols-[minmax(0,1.18fr)_minmax(22rem,0.82fr)]',
+    mediaClass: 'aspect-[16/9] lg:aspect-auto lg:min-h-[30rem]',
+    contentClass: 'lg:border-l-[3px] lg:border-t-0 lg:flex lg:flex-col lg:justify-between',
+  },
+  {
+    articleClass: 'lg:col-span-3',
+    mediaClass: 'aspect-[4/3]',
+    contentClass: '',
+  },
+  {
+    articleClass: 'lg:col-span-3',
+    mediaClass: 'aspect-[4/3]',
+    contentClass: '',
+  },
+  {
+    articleClass: 'lg:col-span-4',
+    mediaClass: 'aspect-[16/9]',
+    contentClass: '',
+  },
+  {
+    articleClass: 'lg:col-span-2',
+    mediaClass: 'aspect-[4/3] lg:aspect-[5/4]',
+    contentClass: '',
+  },
+] as const;
+
+const getPrimaryLink = (project: ProjectDetail) => {
+  if (project.id === 'neobrutalist-os') {
+    return { label: 'Open OS', url: '/os' };
+  }
+
+  return project.links?.[0] ?? null;
+};
+
+const newFocusedProjects = [
+  {
+    id: '45min-timer',
+    name: '45 Min iOS Square Reminder Timer',
+    oneSentence: 'A focused iOS timer app that uses square visual reminders for precise 45-minute work or walk sessions with notifications.',
+    techStack: ['Swift', 'SwiftUI', 'iOS'],
+    primaryLink: { label: 'App Store', url: '#' },
+    image: {
+      src: '/images/projects/45min-timer-hero.jpg',
+      width: 896,
+      height: 1280,
+      orientation: 'portrait' as const,
+      alt: 'iPhone mockup of the 45 Min Square Reminder Timer iOS app',
+    },
+  },
+  {
+    id: 'iwt',
+    name: 'IWT Japanese Walking App',
+    oneSentence: 'An iOS app for Japanese-style interval walking training with guided pace changes, timers, and session logging.',
+    techStack: ['Swift', 'SwiftUI', 'iOS'],
+    primaryLink: { label: 'App Store', url: '#' },
+    image: {
+      src: '/images/projects/iwt-hero.jpg',
+      width: 896,
+      height: 1280,
+      orientation: 'portrait' as const,
+      alt: 'iPhone showing the IWT Japanese Walking App interface',
+    },
+  },
+  {
+    id: 'label-peek',
+    name: 'Label Peek',
+    oneSentence: 'A lightweight tool that lets you quickly peek and manage labels across tasks, notes, and projects without leaving your flow.',
+    techStack: ['Swift', 'SwiftUI', 'macOS', 'iOS'],
+    primaryLink: { label: 'Download', url: '#' },
+    image: {
+      src: '/images/projects/label-peek-hero.jpg',
+      width: 1408,
+      height: 768,
+      orientation: 'landscape' as const,
+      alt: 'Screenshot of Label Peek tool interface',
+    },
+  },
+  {
+    id: 'leanstack-protocol',
+    name: 'LeanStack Protocol',
+    oneSentence: 'A minimal protocol and set of tools for building lean, composable application stacks with clear boundaries and low overhead.',
+    techStack: ['TypeScript', 'Node.js', 'Protocol'],
+    primaryLink: { label: 'Documentation', url: '#' },
+    image: {
+      src: '/images/projects/lifespan-tracker-hero.jpg',
+      width: 1408,
+      height: 768,
+      orientation: 'landscape' as const,
+      alt: 'LeanStack Protocol architecture diagram and code example',
+    },
+  },
+  {
+    id: 'listenonce',
+    name: 'ListenOnce iOS App',
+    oneSentence: 'An iOS app designed for one-time focused listening sessions with progress tracking, offline support, and minimal distractions.',
+    techStack: ['Swift', 'SwiftUI', 'iOS'],
+    primaryLink: { label: 'App Store', url: '#' },
+    image: {
+      src: '/images/projects/move45-hero.jpg',
+      width: 896,
+      height: 1280,
+      orientation: 'portrait' as const,
+      alt: 'iPhone mockup of the ListenOnce iOS app',
+    },
+  },
+];
+
+const showcaseProjects = newFocusedProjects;
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  "name": "I like to build software — Jan Medina",
-  "description": "Three focused projects with custom visuals and one-sentence descriptions. Turning problems into shipped software.",
+  "name": "I like to build software - Jan Medina",
+  "description": "Five focused projects with custom visuals and one-sentence descriptions. Turning problems into shipped software.",
   "url": "https://janbmedina.com/i-build"
 };
 ---
 
 <BaseLayout
-  title="I like to build software — Jan Medina"
-  description="Three focused projects with custom visuals and one-sentence descriptions. Turning problems into shipped software."
+  title="I like to build software - Jan Medina"
+  description="Five projects with custom visuals and one-sentence descriptions. Turning problems into shipped software."
   canonicalPath="/i-build"
   jsonLd={jsonLd}
 >
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <!-- Breadcrumb -->
-    <nav aria-label="Breadcrumb" class="mb-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+    <nav aria-label="Breadcrumb" class="mb-10">
       <ol class="flex items-center gap-2 text-sm text-neutral-500">
         <li><a href="/" class="hover:underline">Home</a></li>
         <li aria-hidden="true">/</li>
         <li><a href="/projects" class="hover:underline">Projects</a></li>
         <li aria-hidden="true">/</li>
-        <li class="font-semibold text-black">I like to build software</li>
+        <li class="font-semibold text-black">I build</li>
       </ol>
     </nav>
 
-    <div class="max-w-3xl">
-      <div class="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500 mb-2">Projects</div>
-      <h1 class="font-heading text-5xl sm:text-6xl font-black tracking-tighter">I like to build software</h1>
-      <p class="mt-4 text-xl text-neutral-600 max-w-[42ch]">
-        Turning real problems into shipped work. Three focused projects, one sentence each.
-      </p>
-    </div>
+    <header class="mb-12 lg:mb-16 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+      <div>
+        <a href="/projects" class="inline-flex items-center gap-2 font-mono text-sm font-bold text-green hover:text-black transition-colors">
+          <span aria-hidden="true">&larr;</span>
+          Back to projects
+        </a>
+        <h1 class="mt-7 max-w-4xl font-heading text-[clamp(2.5rem,6vw,4rem)] font-black leading-none tracking-tight">
+          I like to build software
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg sm:text-xl leading-relaxed text-neutral-700">
+          Five real projects shaped by IT work, daily habits, and the itch to ship useful tools.
+        </p>
+      </div>
 
-    <div class="mt-12 grid gap-8 md:gap-10">
-      {projects.map((project, index) => {
+      <aside class="neo-border bg-green/20 p-5 shadow-neo-sm">
+        <p class="font-mono text-sm font-bold text-neutral-700">showcase / 05</p>
+        <p class="mt-3 text-sm leading-relaxed text-neutral-700">
+          A cleaner visual shelf for the same builds hiding inside the retro OS.
+        </p>
+      </aside>
+    </header>
+
+    <section class="space-y-10" aria-label="Project showcase">
+      {showcaseProjects.map((proj, index) => {
         const num = String(index + 1).padStart(2, '0');
-        const imageSlug = project.id;
-        const imagePath = `/images/projects/${imageSlug}-hero.jpg`;
-        const sentence = project.oneSentence || project.summary;
-        const stack = project.techStack || [];
+        const isPortrait = proj.image.orientation === 'portrait';
 
         return (
-          <article class="group grid gap-6 md:grid-cols-12 md:items-center border-t border-black/10 pt-8 first:border-t-0 first:pt-0">
-            <!-- Number + Image -->
+          <article class="grid gap-6 md:grid-cols-12 md:items-center border-t border-black/10 pt-8 first:border-t-0 first:pt-0">
             <div class="md:col-span-5">
-              <div class="flex items-center gap-3 mb-3">
-                <span class="font-mono text-sm font-bold text-neutral-400">{num}</span>
-                {project.status === 'in-progress' && (
-                  <span class="text-[10px] font-semibold uppercase tracking-[0.12em] px-2.5 py-0.5 rounded-full bg-yellow/15 text-yellow border border-yellow/30">
-                    In progress
-                  </span>
-                )}
-              </div>
-
+              <div class="font-mono text-xs font-bold text-neutral-500 mb-2">{num}</div>
               <div class="overflow-hidden neo-border shadow-neo bg-white">
                 <img
-                  src={imagePath}
-                  alt={`Hero image for ${project.name}`}
-                  width="1200"
-                  height="675"
-                  class="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.015]"
+                  src={proj.image.src}
+                  alt={proj.image.alt}
+                  width={proj.image.width}
+                  height={proj.image.height}
+                  class={`w-full h-auto object-cover ${isPortrait ? 'aspect-[4/5] object-contain bg-cream p-4' : 'aspect-video'}`}
                   loading={index === 0 ? 'eager' : 'lazy'}
                 />
               </div>
             </div>
 
-            <!-- Content -->
             <div class="md:col-span-7">
-              <h2 class="font-heading text-3xl sm:text-4xl font-black tracking-[-0.02em]">
-                {project.name}
+              <h2 class="font-heading text-3xl sm:text-4xl font-black tracking-tight">
+                {proj.name}
               </h2>
 
-              <p class="mt-4 text-lg leading-snug text-neutral-700 max-w-[52ch]">
-                {sentence}
+              <p class="mt-4 text-lg leading-snug text-neutral-700 max-w-prose">
+                {proj.oneSentence}
               </p>
 
-              {stack.length > 0 && (
-                <div class="mt-5 flex flex-wrap gap-2">
-                  {stack.map((tech) => (
-                    <span class="inline-block border border-black/15 bg-white px-3 py-1 text-xs font-medium tracking-[0.06em] text-neutral-600">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <div class="mt-5 flex flex-wrap gap-2">
+                {proj.techStack.map((tech) => (
+                  <span class="inline-block border border-black/15 bg-white px-3 py-1 text-xs font-medium tracking-[0.06em] text-neutral-600">
+                    {tech}
+                  </span>
+                ))}
+              </div>
 
-              {project.links && project.links.length > 0 && (
+              {proj.primaryLink && (
                 <div class="mt-6">
-                  {project.links.map((link) => (
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1.5 text-sm font-bold text-green hover:underline"
-                    >
-                      {link.label} <span aria-hidden="true">→</span>
-                    </a>
-                  ))}
+                  <a
+                    href={proj.primaryLink.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 text-sm font-bold text-green hover:underline"
+                  >
+                    {proj.primaryLink.label} <span aria-hidden="true">→</span>
+                  </a>
                 </div>
-              )}
-
-              {project.cta && (
-                <p class="mt-4 text-sm italic text-neutral-500">{project.cta}</p>
               )}
             </div>
           </article>
         );
       })}
-    </div>
+    </section>
 
-    <div class="mt-16 border-t border-black/10 pt-8 text-sm text-neutral-500">
-      Focused selection of projects built to solve real problems I actually had.
+    <div class="mt-14 border-t-[3px] border-black pt-6 text-sm leading-relaxed text-neutral-600 sm:max-w-2xl">
+      Every project started because I hit a real wall in my own work or life. I kept building until the wall was gone.
     </div>
   </div>
 </BaseLayout>

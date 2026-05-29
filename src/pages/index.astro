@@ -785,10 +785,12 @@ const sections = portfolioData.sections.filter((section) => section.id !== 'proj
 
       <div class="visual-projects-grid">
         {[
-          portfolioData.projects.find(p => p.id === 'neobrutalist-os'),
-          portfolioData.projects.find(p => p.id === 'move45'),
-          portfolioData.projects.find(p => p.id === 'lifespan-tracker')
-        ].filter(Boolean).map((project, i) => {
+          { id: '45min-timer', name: '45 Min iOS Square Reminder Timer', oneSentence: 'A focused iOS timer app that uses square visual reminders for precise 45-minute work or walk sessions with notifications.', techStack: ['Swift', 'SwiftUI', 'iOS'], primaryLink: { label: 'App Store', url: '#' } },
+          { id: 'iwt', name: 'IWT Japanese Walking App', oneSentence: 'An iOS app for Japanese-style interval walking training with guided pace changes, timers, and session logging.', techStack: ['Swift', 'SwiftUI', 'iOS'], primaryLink: { label: 'App Store', url: '#' } },
+          { id: 'label-peek', name: 'Label Peek', oneSentence: 'A lightweight tool that lets you quickly peek and manage labels across tasks, notes, and projects without leaving your flow.', techStack: ['Swift', 'SwiftUI', 'macOS', 'iOS'], primaryLink: { label: 'Download', url: '#' } },
+          { id: 'leanstack-protocol', name: 'LeanStack Protocol', oneSentence: 'A minimal protocol and set of tools for building lean, composable application stacks with clear boundaries and low overhead.', techStack: ['TypeScript', 'Node.js', 'Protocol'], primaryLink: { label: 'Documentation', url: '#' } },
+          { id: 'listenonce', name: 'ListenOnce iOS App', oneSentence: 'An iOS app designed for one-time focused listening sessions with progress tracking, offline support, and minimal distractions.', techStack: ['Swift', 'SwiftUI', 'iOS'], primaryLink: { label: 'App Store', url: '#' } },
+        ].map((project, i) => {
           const num = String(i + 1).padStart(2, '0');
           const imagePath = `/images/projects/${project.id}-hero.jpg`;
           const sentence = project.oneSentence || project.summary;
