@@ -4,87 +4,114 @@ import portfolioData from '../data/portfolioData';
 
 const projects = portfolioData.projects;
 
+// Taste-skill guided dials for this editorial portfolio gallery on neobrutalist cream site:
+// VARIANCE 6 (measured asymmetry within thick borders), MOTION 3 (subtle lifts only), DENSITY 4 (breathing room)
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "I like to build software — Jan Medina",
-  "description": "Things I've built. Each one started from a real problem I felt and became something I shipped.",
+  "description": "Five projects with custom visuals and one-sentence descriptions. Turning problems into shipped software.",
   "url": "https://janbmedina.com/i-build"
 };
 ---
 
 <BaseLayout
   title="I like to build software — Jan Medina"
-  description="Five things I built because I needed them. Real problems, real code, real users."
+  description="Five projects with custom visuals and one-sentence descriptions. Turning problems into shipped software."
   canonicalPath="/i-build"
   jsonLd={jsonLd}
 >
-  <div class="max-w-5xl mx-auto px-6 py-16">
-    <!-- Header -->
-    <div class="mb-12">
-      <a href="/projects" class="text-sm font-mono uppercase tracking-[0.18em] text-neutral-500 hover:text-black transition-colors">← Back to projects</a>
-      
-      <h1 class="mt-6 font-heading text-6xl md:text-7xl font-black tracking-[-0.02em] leading-none">
-        I like to build software
-      </h1>
-      <p class="mt-4 max-w-2xl text-xl text-neutral-600">
-        Turning real problems in IT and daily life into things that actually ship.
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" class="mb-8">
+      <ol class="flex items-center gap-2 text-sm text-neutral-500">
+        <li><a href="/" class="hover:underline">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/projects" class="hover:underline">Projects</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="font-semibold text-black">I like to build software</li>
+      </ol>
+    </nav>
+
+    <div class="max-w-3xl">
+      <div class="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500 mb-2">Projects</div>
+      <h1 class="font-heading text-5xl sm:text-6xl font-black tracking-tighter">I like to build software</h1>
+      <p class="mt-4 text-xl text-neutral-600 max-w-[42ch]">
+        Turning real problems into shipped work. Five projects, one sentence each.
       </p>
     </div>
 
-    <!-- Gallery -->
-    <div class="grid gap-10 md:gap-12">
+    <div class="mt-12 grid gap-8 md:gap-10">
       {projects.map((project, index) => {
         const num = String(index + 1).padStart(2, '0');
-        const imageSrc = `/images/projects/${project.id}-hero.jpg`;
-        const primaryLink = project.links?.[0] || (project.id === 'neobrutalist-os' ? { label: 'Enter the OS', url: '/os' } : null);
-        
+        const imageSlug = project.id;
+        const imagePath = `/images/projects/${imageSlug}-hero.jpg`;
+        const sentence = project.oneSentence || project.summary;
+        const stack = project.techStack || [];
+
         return (
-          <article class="group">
-            <div class="flex items-baseline gap-4 mb-3">
-              <span class="font-mono text-sm uppercase tracking-[0.2em] text-neutral-400">{num}</span>
-              <h2 class="font-heading text-4xl font-black tracking-[-0.01em]">{project.name}</h2>
-              {project.status === 'in-progress' && (
-                <span class="ml-2 text-xs font-semibold uppercase px-3 py-1 rounded border border-yellow/60 bg-yellow/10 text-yellow-700">In progress</span>
-              )}
+          <article class="group grid gap-6 md:grid-cols-12 md:items-center border-t border-black/10 pt-8 first:border-t-0 first:pt-0">
+            <!-- Number + Image -->
+            <div class="md:col-span-5">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="font-mono text-sm font-bold text-neutral-400">{num}</span>
+                {project.status === 'in-progress' && (
+                  <span class="text-[10px] font-semibold uppercase tracking-[0.12em] px-2.5 py-0.5 rounded-full bg-yellow/15 text-yellow border border-yellow/30">
+                    In progress
+                  </span>
+                )}
+              </div>
+
+              <div class="overflow-hidden neo-border shadow-neo bg-white">
+                <img
+                  src={imagePath}
+                  alt={`Hero image for ${project.name}`}
+                  width="1200"
+                  height="675"
+                  class="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.015]"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              </div>
             </div>
 
-            <!-- Hero image -->
-            <div class="relative mb-6 overflow-hidden border-[3px] border-black bg-neutral-100">
-              <img 
-                src={imageSrc} 
-                alt={`Screenshot of ${project.name}`}
-                class="w-full h-auto object-cover"
-                width="1600"
-                height="900"
-                loading={index === 0 ? 'eager' : 'lazy'}
-              />
-            </div>
+            <!-- Content -->
+            <div class="md:col-span-7">
+              <h2 class="font-heading text-3xl sm:text-4xl font-black tracking-[-0.02em]">
+                {project.name}
+              </h2>
 
-            <div class="max-w-3xl">
-              <p class="text-[17px] leading-tight text-neutral-800">
-                {project.oneSentence}
+              <p class="mt-4 text-lg leading-snug text-neutral-700 max-w-[52ch]">
+                {sentence}
               </p>
 
-              {project.techStack && project.techStack.length > 0 && (
-                <div class="mt-4 flex flex-wrap gap-2">
-                  {project.techStack.map((tech) => (
-                    <span class="px-3 py-1 text-xs font-mono uppercase tracking-[0.1em] border border-black/30 bg-white text-neutral-700">
+              {stack.length > 0 && (
+                <div class="mt-5 flex flex-wrap gap-2">
+                  {stack.map((tech) => (
+                    <span class="inline-block border border-black/15 bg-white px-3 py-1 text-xs font-medium tracking-[0.06em] text-neutral-600">
                       {tech}
                     </span>
                   ))}
                 </div>
               )}
 
-              {primaryLink && (
-                <a 
-                  href={primaryLink.url}
-                  target={primaryLink.url.startsWith('http') ? '_blank' : undefined}
-                  rel={primaryLink.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  class="inline-flex items-center gap-2 mt-6 text-sm font-bold uppercase tracking-[0.12em] text-green-700 hover:text-green-900 transition-colors"
-                >
-                  {primaryLink.label} <span aria-hidden="true">→</span>
-                </a>
+              {project.links && project.links.length > 0 && (
+                <div class="mt-6">
+                  {project.links.map((link) => (
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1.5 text-sm font-bold text-green hover:underline"
+                    >
+                      {link.label} <span aria-hidden="true">→</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {project.cta && (
+                <p class="mt-4 text-sm italic text-neutral-500">{project.cta}</p>
               )}
             </div>
           </article>
@@ -92,8 +119,8 @@ const jsonLd = {
       })}
     </div>
 
-    <div class="mt-16 pt-8 border-t border-black/10 text-sm text-neutral-500 max-w-2xl">
-      Every project above started because I hit a wall in my own work or life. I kept building until the wall was gone.
+    <div class="mt-16 border-t border-black/10 pt-8 text-sm text-neutral-500">
+      All projects built to solve real problems I actually had. No side quests.
     </div>
   </div>
 </BaseLayout>
