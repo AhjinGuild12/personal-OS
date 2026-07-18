@@ -7,6 +7,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "validate:themes-local": "node scripts/validate-themes-local.mjs",
+    "deploy:cf": "npm run build && wrangler deploy",
+    "deploy:cf:preview": "npm run build && wrangler versions upload",
+    "smoke:cf": "node scripts/smoke-cloudflare-preview.mjs",
     "astro": "astro"
   },
   "dependencies": {
@@ -23,6 +26,7 @@
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.7"
+    "@astrojs/check": "^0.9.7",
+    "wrangler": "^4.81.1"
   }
 }

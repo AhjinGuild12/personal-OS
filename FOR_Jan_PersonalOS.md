@@ -27,8 +27,9 @@ This is the current truth for the live project:
 - The available themes are **Neo**, **Windows XP**, and **Mac OS X**
 - The Aqua / Mac theme now uses a **centered dock-first launcher**
 - In Aqua, the dock pins: **Projects**, **Tasks**, **App Store** (`My Apps`), **Browser**, and **Games**
-- The Vercel deployment currently serves this app from the project root
-- If `/os` is needed again later, that has to be added as an explicit routing decision
+- Public marketing site + React OS island live at `janbmedina.com` (`/` + `/os`)
+- **Hosting migration (2026-07):** Cloudflare Workers static assets (`personal-os` worker). Preview: `https://personal-os.cloudfare-math033.workers.dev`. Custom domain cutover is a separate DNS step — see `docs/deploy/cloudflare.md`. Vercel remains the rollback origin until soak completes.
+- Deploy: `npm run deploy:cf` · Smoke: `npm run smoke:cf -- <url>`
 
 It's not just a cool gimmick. The portfolio content lives inside the OS apps — your projects, your skills, your contact info. It's a conversation starter, not just a resume link.
 
