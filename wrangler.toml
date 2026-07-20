@@ -1,3 +1,9 @@
+# Cloudflare Workers static assets for personal-OS
+# Build: npm run build → dist/
+# Deploy: npm run deploy:cf
+#
+# Fully pre-rendered Astro — no @astrojs/cloudflare SSR adapter required.
+
 name = "personal-os"
 compatibility_date = "2026-07-18"
 workers_dev = true
@@ -6,3 +12,12 @@ workers_dev = true
 directory = "./dist/"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
+
+# Production hostnames — CF creates/updates proxied DNS for custom domains
+[[routes]]
+pattern = "janbmedina.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.janbmedina.com"
+custom_domain = true

@@ -45,12 +45,48 @@ npm run smoke:cf -- https://personal-os.<account>.workers.dev
 
 ## Cutover checklist
 
-1. Smoke preview URL (must show `server: cloudflare`, not Vercel)
-2. Lower DNS TTL if needed
-3. Attach custom domains on the Worker; ensure DNS is **proxied** (orange cloud)
-4. Re-run smoke against `https://www.janbmedina.com` and apex
-5. Keep Vercel domain binding ≥48h for rollback
-6. See `cloudflare-migration-baseline.md` for prior DNS values
+Worker config already includes custom domains in `wrangler.toml`:
+
+```toml
+[[routes]]
+pattern = "janbmedina.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.janbmedina.com"
+custom_domain = true
+```
+
+**Blocker:** existing Vercel A/CNAME records on the zone must be deleted before attach (CF error 100117). Wrangler OAuth can deploy Workers but **cannot edit DNS** (no Zone.DNS scope).
+
+### Automated cutover (preferred)
+
+1. Create API token: [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)  
+   - Permissions: **Zone → DNS → Edit**  
+   - Zone Resources: **Include → Specific zone → janbmedina.com**
+2. Run:
+
+```bash
+export CLOUDFLARE_API_TOKEN=...   # paste token
+node scripts/cutover-custom-domains.mjs
+```
+
+This deletes conflicting apex/www A|AAAA|CNAME records, runs `wrangler deploy`, then smokes `https://www.janbmedina.com`.
+
+### Manual cutover
+
+1. Smoke preview: `npm run smoke:cf -- https://personal-os.cloudfare-math033.workers.dev`
+2. In Cloudflare DNS for `janbmedina.com`, **delete**:
+   - apex `A` → `216.198.79.1` (Vercel)
+   - `www` `CNAME` → `*.vercel-dns-017.com`
+3. `npm run deploy:cf` (creates custom domain DNS + SSL)
+4. Add Redirect Rule: apex `janbmedina.com` → `https://www.janbmedina.com` (301) if apex is not already redirected
+5. `npm run smoke:cf -- https://www.janbmedina.com`
+6. Keep Vercel project ≥48h for rollback (baseline file)
+
+## Rollback
+
+Restore DNS from `docs/deploy/cloudflare-migration-baseline.md`.
 
 ## Rollback
 
