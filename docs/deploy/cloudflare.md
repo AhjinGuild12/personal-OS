@@ -57,36 +57,24 @@ pattern = "www.janbmedina.com"
 custom_domain = true
 ```
 
-**Blocker:** existing Vercel A/CNAME records on the zone must be deleted before attach (CF error 100117). Wrangler OAuth can deploy Workers but **cannot edit DNS** (no Zone.DNS scope).
+### Cutover (completed 2026-07-21)
 
-### Automated cutover (preferred)
+1. Deleted Vercel A/CNAME from Cloudflare DNS (manual)
+2. `npx wrangler deploy` attached custom domains for apex + www
+3. Production verified: `server: cloudflare` via authoritative DNS (`dig @1.1.1.1`)
 
-1. Create API token: [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)  
-   - Permissions: **Zone → DNS → Edit**  
-   - Zone Resources: **Include → Specific zone → janbmedina.com**
-2. Run:
+### Post-cutover cleanup (after ≥24–48h)
 
-```bash
-export CLOUDFLARE_API_TOKEN=...   # paste token
-node scripts/cutover-custom-domains.mjs
-```
+1. Vercel → project → Domains → remove `janbmedina.com` / `www` if still listed
+2. Keep the Vercel project until you no longer need emergency rollback
+3. Emergency rollback: restore records from `cloudflare-migration-baseline.md`
 
-This deletes conflicting apex/www A|AAAA|CNAME records, runs `wrangler deploy`, then smokes `https://www.janbmedina.com`.
+## Production status
 
-### Manual cutover
-
-1. Smoke preview: `npm run smoke:cf -- https://personal-os.cloudfare-math033.workers.dev`
-2. In Cloudflare DNS for `janbmedina.com`, **delete**:
-   - apex `A` → `216.198.79.1` (Vercel)
-   - `www` `CNAME` → `*.vercel-dns-017.com`
-3. `npm run deploy:cf` (creates custom domain DNS + SSL)
-4. Add Redirect Rule: apex `janbmedina.com` → `https://www.janbmedina.com` (301) if apex is not already redirected
-5. `npm run smoke:cf -- https://www.janbmedina.com`
-6. Keep Vercel project ≥48h for rollback (baseline file)
-
-## Rollback
-
-Restore DNS from `docs/deploy/cloudflare-migration-baseline.md`.
+- **Worker:** `personal-os`
+- **Domains:** `janbmedina.com`, `www.janbmedina.com` (custom domains)
+- **Preview:** `https://personal-os.cloudfare-math033.workers.dev`
+- If your browser still hits Vercel, flush DNS / try `dig @1.1.1.1 www.janbmedina.com A`
 
 ## Rollback
 
