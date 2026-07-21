@@ -40,3 +40,14 @@ content-length: 21974
 2. Restore www CNAME to `c9982470aad6dc11.vercel-dns-017.com.`.
 3. Verify: `curl -sI https://www.janbmedina.com | grep -i server` shows `Vercel`.
 4. Keep Vercel project domain binding until post-soak teardown.
+
+---
+
+## Cutover completed — 2026-07-21
+
+- Deleted Vercel A/CNAME from Cloudflare DNS (manual)
+- `wrangler deploy` attached custom domains:
+  - `janbmedina.com`
+  - `www.janbmedina.com`
+- Authoritative DNS now CF anycast (`172.67.x` / `104.21.x`), `server: cloudflare`
+- Worker version at cutover: see `wrangler deployments list`
